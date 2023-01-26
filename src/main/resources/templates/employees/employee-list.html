@@ -21,7 +21,7 @@
 	<div class="container">
 		<h3 class="mt-2">Employee Directory</h3>
 		<br><br>
-		
+		<a th:href="@{/showFormForAdd}" class="btn btn-primary btn-sm mb-4">Add Employee</a>
 		<table class="table table-striped">
 			<thead class="table table-dark">
 				<tr>
@@ -36,6 +36,10 @@
 					<td th:text="${employee.firstName}"></td>
 					<td th:text="${employee.lastName}"></td>
 					<td th:text="${employee.email}"></td>
+					<td>
+						<a th:href="@{/showFormForUpdate(employeeId=${employee.id})}" class="btn btn-primary btn-sm">Update</a>
+						<a th:href="@{/delete(employeeId=${employee.id})}" class="btn btn-danger btn-sm">Delete</a>
+					</td>
 				</tr>
 			</tbody>
 		</table>
