@@ -17,6 +17,9 @@
 		vertical-align: middle;
 	}
 	
+	.image-style {
+		width: 30px; height: 30px; border-radius: 50%;
+	}
 	
 </style>
 </head>
@@ -63,13 +66,16 @@
 			
 			<tbody>
 				<tr th:each="employee : ${employees}">
+					<td>
+						<a th:href="@{/showFormForUpdate(employeeId=${employee.id})}"><img th:if="${employee.isDir == true}" th:src="@{${employee.getImagePath}}" class="image-style"></a>
+						<a th:href="@{/showFormForUpdate(employeeId=${employee.id})}"><img th:if="${employee.isDir == false}" th:src="@{/images/avatar.png}" class="image-style"></a>
+					</td> 
 					<td th:text="${employee.firstName}"/>
 					<td th:text="${employee.lastName}"/>
 					<td th:text="${employee.email}"/>
 					<td>
 						<a th:href="@{/delete(employeeId=${employee.id})}" class="btn btn-danger btn-sm"
 						   onclick="return confirmDelete()">Delete</a>
-						<a th:href="@{/contact/showContactForm(employeeId=${employee.id})}" class="btn btn-secondary btn-sm">Contact</a>
 						<a th:href="@{/sales/showFormForSales(employeeId=${employee.id})}" class="btn btn-success btn-sm">Sales</a>
 					</td>
 				</tr>

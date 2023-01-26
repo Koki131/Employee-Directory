@@ -1,5 +1,9 @@
 package com.employeedir.demo.entity;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -95,6 +99,21 @@ public class Employee {
 		this.image = image;
 	}
 	
+	public String getImagePath() {
+		
+		if (image == null) return null;
+		
+		return "/employee-images/" + id + "/" + image;	
+			 
+	}
 	
+	public boolean isDir() {
+		
+		String dir = "./employee-images/" + this.getId();
+		
+		Path uploadPath = Paths.get(dir);
+		
+		return Files.isDirectory(uploadPath);
+	}
 	
 }
