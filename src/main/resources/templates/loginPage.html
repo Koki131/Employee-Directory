@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="ISO-8859-1">
+<title>Login</title>
+	
+	<link rel="shortcut icon" href="#">
+	
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
+	
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+	
+	<script	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		
+	<style type="text/css">
+	
+    	.cascading-right {
+      		margin-right: -50px;
+    	}
+
+   		@media (max-width: 991.98px) {
+      		.cascading-right {
+        	margin-right: 0;
+      	}
+    }
+    </style>
+
+
+
+</head>
+
+<body>
+
+<section class="text-center text-lg-start">
+
+
+  <!-- Jumbotron -->
+  <div class="container py-4">
+    <div class="row g-0 align-items-center">
+      <div class="col-lg-6 mb-5 mb-lg-0">
+        <div class="card cascading-right" style="
+            background: hsla(0, 0%, 100%, 0.55);
+            backdrop-filter: blur(30px);
+            ">
+          <div class="card-body p-5 shadow-5 text-center">
+            <h2 class="fw-bold mb-5">Sign in</h2>
+            
+            <form th:action="@{/authenticateTheUser}" 
+						  method="POST">
+            
+              <!-- Validation -->	
+             
+            
+				<div th:if="${param.error}" class="alert alert-danger col-xs-offset-1 col-xs-10">
+							Invalid username/password.
+				</div>
+			
+			
+			
+				<div th:if="${param.logout}" class="alert alert-success col-xs-offset-1 col-xs-10">
+							You have logged out successfully
+				</div>
+			
+				<div th:if="${registrationSuccess != null}" class="alert alert-success col-xs-offset-1 col-xs-10">
+							[[${registrationSuccess}]]
+				</div>
+				
+              <!-- Username input -->
+              <div class="form-outline mb-4">
+                <input type="text" name="username" id="form3Example3" class="form-control" placeholder="Username"/>
+                <label class="form-label" for="form3Example3">Username</label>
+              </div>
+
+              <!-- Password input -->
+              <div class="form-outline mb-4">
+                <input type="password" name="password" id="form3Example4" class="form-control" placeholder="Password"/>
+                <label class="form-label" for="form3Example4">Password</label>
+              </div>
+
+             
+
+              <!-- Submit button -->
+              <button type="submit" class="btn btn-primary btn-block mb-4">
+                Sign in
+              </button>
+
+              
+            </form>
+            	Don't have an account? <a th:href="@{/register/showRegistrationForm}">Sign up</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 mb-5 mb-lg-0">
+        <img src="https://mdbootstrap.com/img/new/ecommerce/vertical/004.jpg" class="w-100 rounded-4 shadow-4"
+          alt="" />
+      </div>
+    </div>
+  </div>
+  <!-- Jumbotron -->
+</section>
+</body>
+</html>
