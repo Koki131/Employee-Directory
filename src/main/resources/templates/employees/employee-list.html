@@ -38,7 +38,8 @@
 					<td th:text="${employee.email}"></td>
 					<td>
 						<a th:href="@{/showFormForUpdate(employeeId=${employee.id})}" class="btn btn-primary btn-sm">Update</a>
-						<a th:href="@{/delete(employeeId=${employee.id})}" class="btn btn-danger btn-sm">Delete</a>
+						<a th:href="@{/delete(employeeId=${employee.id})}" class="btn btn-danger btn-sm"
+						onclick="return confirmDelete()">Delete</a>
 					</td>
 				</tr>
 			</tbody>
@@ -46,5 +47,12 @@
 		
 	</div>
 	
+	<script th:inline="javascript">
+	
+		function confirmDelete() {
+			return confirm('Are you sure you want to delete this employee?');
+		}
+		
+	</script>
 </body>
 </html>
