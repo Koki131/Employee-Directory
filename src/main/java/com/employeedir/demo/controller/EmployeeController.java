@@ -3,10 +3,12 @@ package com.employeedir.demo.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -21,14 +23,34 @@ public class EmployeeController {
 	private EmployeeService employeeService;
 	
 	
-	@GetMapping("/")
-	public String list(Model model) {
+	@GetMapping("/{pageNum}")
+	public String list(Model model, @PathVariable("pageNum") int pageNum, @RequestParam("sortField") String sortField, 
+			@RequestParam("sortDir") String sortDir, @RequestParam(required = false, name = "keyword") String keyword) {
 		
-		List<Employee> employees = employeeService.findAll();
+		Page<Employee> page = employeeService.findPage(pageNum, sortField, sortDir, keyword);
+		int totalPages = page.getTotalPages();
+		long totalItems = page.getTotalElements();
+		List<Employee> employees = page.getContent();
+		
+		model.addAttribute("pageNum", pageNum);
+		model.addAttribute("sortField", sortField);
+		model.addAttribute("sortDir", sortDir);
+		model.addAttribute("keyword", keyword);
+		model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+		
+		model.addAttribute("totalPages", totalPages);
+		model.addAttribute("totalItems", totalItems);
 		
 		model.addAttribute("employees", employees);
 		
-		return "/employees/employee-list";	
+		return "/employees/employee-list";
+		
+	}
+	
+	@GetMapping("/")
+	public String listAll(Model model) {
+		String keyword = null;
+		return list(model, 1, "firstName", "asc", keyword);
 	}
 	
 	@GetMapping("/showFormForAdd")

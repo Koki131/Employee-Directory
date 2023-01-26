@@ -47,4 +47,24 @@ public class EmployeeServiceImpl implements EmployeeService {
 	public void delete(int employeeId) {
 		repo.deleteById(employeeId);
 	}
+
+	@Override
+	@Transactional
+	public Page<Employee> findPage(int pageNum, String sortField, String sortDir, String keyword) {
+		
+		Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
+		
+		Pageable pageable = null;
+		
+		if (pageNum > 0) {
+			pageable = PageRequest.of(pageNum - 1, 5, sort);
+		}
+		
+		if (keyword != null) {
+			return repo.getByKeyword(keyword, pageable);
+		}
+		
+		return repo.findAll(pageable);
+		
+	}
 }
