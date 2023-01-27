@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sales</title>
+
+<link rel="icon" href="data:,">
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+<script src = "https://code.highcharts.com/highcharts.js"></script>
+
+<!-- Chart Export -->
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<!-- Export end -->
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+<link rel="stylesheet" th:href="@{/css/style.css}">
+
+<style>
+
+.grid-container {
+	  display: grid;
+	  grid-template-columns: auto auto auto auto auto auto;
+	  padding: 10px;
+
+}
+
+.item1 {
+	grid-column-start: 1;
+	grid-column-end: 2;
+}
+.item2 {
+	grid-column-start: 9;
+	grid-column-end: 10;
+}
+.item3 {
+	grid-column-start: 11;
+	grid-column-end: 11;
+}
+
+
+
+
+</style>
+
+</head>
+<body>
+
+
+	<nav id="nav" class="py-1 navbar navbar-expand-lg navbar-dark bg-dark">
+  		<div class="container-fluid">
+		    	<a class="navbar-brand mb-2" th:href="@{/}">Employee Directory</a>
+				    <div class="collapse navbar-collapse">
+				     	 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+				        	<li class="nav-item">
+				          		<a class="nav-link active me-4" aria-current="page" th:href="@{/}">Home</a>
+				        	</li>
+				        	<li class="nav-item" sec:authorize="hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')">
+				        		<a class="nav-link active me-4" aria-current="page" th:href="@{/sales/showPerformance}">Performance</a>
+				        	</li>
+				      	</ul>
+				      	<form th:action="@{/logout}" method="POST">
+				      		<input type="submit" value="Logout" class="btn btn-danger btn-sm" onclick="return checkLogout()"/>
+				      	</form>
+		    		</div>
+  			</div>
+	</nav>	
+	<br><br>
+	
+	
+	<div class="grid-container" >
+		<div style="text-align: center;">
+				<p th:if="${removeSuccess != null}" class="alert alert-success col-xs-offset-1 col-xs-10">[[${removeSuccess}]]</p>
+				<p th:if="${saleSuccess != null}" class="alert alert-success col-xs-offset-1 col-xs-10">[[${saleSuccess}]]</p>
+		</div>
+		<div class="item1" style="margin-left: 20px; margin-top: 20px;">
+			<form th:action="@{/sales/addSale}" th:object="${sale}" method="POST" class="mb-4" onsubmit="return checkSize()">
+				<h4 class="mb-4">Add Sale</h4>
+			    <div>
+				    <div class="form-group">
+				        <label for="date" class="mb-2">Date:</label>
+				        <input type="date" class="form-control mb-3" id="date"  th:field="*{date}" required/> 
+				        
+				    </div>
+				    <div class="form-group">
+				        <label for="amount" class="mb-2">Amount:</label>
+				        <input type="text" class="form-control mb-4" id="amount" th:field="*{amount}"
+				        onkeypress="if ( isNaN(this.value + String.fromCharCode(event.keyCode) )) return false;"
+				        required/>
+				    </div>
+			    </div>
+			    <button id="validate" type="submit" class="btn btn-primary btn-sm">Add Sale</button>
+   
+			</form>
+			
+			<form th:action="@{/sales/removeSale}" onsubmit="return validateRemoveForm()">
+				<h4 class="mb-4">Remove Sale</h4>
+				<div>
+					<label for="removeDate" class="mb-2">Date:</label>
+					<input type="date" name="date" id="removeDate" class="form-control mb-4" required>
+				</div>
+					<button type="submit" id="validateDate" class="btn btn-danger btn-sm">Delete</button>
+			</form>
+			
+		</div>
+		
+		<br>
+			
+		<div class="item2 mt-5">
+		
+			<form>
+				<label for="year-select" class="mb-2">Select year:</label>
+				<div>
+				<select id="year-select" class="form-select mb-2" >
+					<option th:each="year : ${years}" th:value="${year}" th:text="${year}"></option>
+				</select>
+				</div>
+			</form>
+			
+			<form>
+				<label for="chart-select" class="mb-2">Chart type:</label>
+				<div>
+				<select id="chart-select" class="form-select mb-2">
+					<option value="bar">Bar</option>
+					<option value="pie">Pie</option>
+					<option value="column">Column</option>
+					<option value="line">Line</option>
+				</select>
+				</div>
+			</form>
+			<div th:if="${monthLength > 1}">
+			<form>
+				<label for="month-select" class="mb-2">Select month:</label>
+				<div>
+					<select id="month-select" class="form-select">
+						<option th:each="month : ${months}" th:value="${month}" th:text="${month}"/>
+					</select>
+				</div>
+			</form>
+			</div>
+		</div>
+		
+		<div class="item3">
+			<div class="" id="sales-chart-container"  style="width:600px; height:400px;" ></div>
+		</div>
+	</div>
+
+  <script th:inline="javascript">
+ 	
+  	/* Prevent white spaces in amount input */
+ 	
+	  $("input#amount").on({
+		  keydown: function(e) {
+		    if (e.which === 32)
+		      return false;
+		  },
+		  change: function() {
+		    this.value = this.value.replace(/\s/g, "");
+		  }
+		});
+  
+  	
+  	 /* Amount validation */
+  	 
+  	 function checkSize() {
+  		 
+  		 var sale = document.getElementById('amount').value;
+  		 
+  		 var digits = Math.log(sale) * Math.LOG10E + 1 | 0;
+  		 
+  		 
+  		 if (digits > 8) {
+  			 alert('Number too large');
+  			 return false;
+  		 }
+
+  		 return true;
+  		 
+  	 }
+  	
+  	
+  	 /* Date validation */
+  	 	
+			 
+  	 function validateRemoveForm() {
+  		 
+  		 var date = document.getElementById('removeDate').value;
+  		 var dates = [[${dates}]];
+  		 
+  		 
+  		 if (!dates.includes(date)) {
+  			 alert("Date doesn't exist")
+  			 return false;
+  		 }
+  		 
+  		 return true;
+  	 }
+  	 
+  
+  	 /* Takes in the default data from the select attribute */
+  
+	  	  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  	 	  const days = [];
+  	 	  
+  	 	  for (let i = 1; i <= 31; i++) {
+  	 		  days.push(i);
+  	 	  }
+	  	 
+	      var yearlySales = [[${yearlySales}]];
+	 	
+	      var monthlySales = [[${monthlySales}]];
+	      
+	      var defaultData = yearlySales.filter(function(sale) {
+		        return sale.year == $('#year-select').val();
+		    });
+	      
+	      Highcharts.chart('sales-chart-container', {
+		        chart: {
+		            type: $('#chart-select').val()
+		        },
+		        title: {
+		            text: [[${employee}]] + "'s "+  'Yearly Sales Performance'
+		        },
+		        xAxis: {
+		            categories: defaultData.map(function(sale) {
+		                return months[sale.month-1];
+		            })
+		        },
+		        yAxis: {
+		            title: {
+		                text: 'Total Sales (USD)'
+		            }
+		        },
+		        series: [{
+		            name: [[${employee}]],
+		            data: defaultData.map(function(sale) {
+		            	return {
+		            		name: [[${employee}]],
+		            		y: sale.totalSales
+		            	} })
+		        }]
+		    });
+	      
+		
+	      
+	      /* Function to dynamically change the chart values filtered by year to display sales per month for the given year */
+	      
+	      $('#year-select').change(function() {
+	    	    updateChart();
+	    	});
+	      
+	      $('#chart-select').change(function() {
+	    	  	updateChart();
+	      });
+	      
+	      $('#month-select').change(function() {
+	    	  	updateChartMonthly();
+	      })
+	
+	    	function updateChart() {
+	    	    
+	
+	    	    var year = $('#year-select').val();
+	    	    var filteredData = yearlySales.filter(function(sale) {
+	    	        return sale.year == year;
+	    	    });
+	
+	    	    chart = Highcharts.chart('sales-chart-container', {
+	    	        chart: {
+	    	            type: $('#chart-select').val()
+	    	        },
+	    	        title: {
+	    	            text: [[${employee}]] + "'s " + ' Yearly Sales Performance'
+	    	        },
+	    	        xAxis: {
+	    	            categories: filteredData.map(function(sale) {
+	    	                return months[sale.month-1]
+	    	            })
+	    	        },
+	    	        yAxis: {
+	    	            title: {
+	    	                text: 'Total Sales (USD)'
+	    	            }
+	    	        },
+	
+	    	        series: [{
+	    	            name: [[${employee}]],
+	    	            data: filteredData.map(function(sale) { 
+	    	            	return {
+	    	            		name: months[sale.month-1],
+	    	            		y: sale.totalSales
+	    	            	};
+	    	            })
+	    	        }]
+	    	    });
+	    	}
+	      
+	       function updateChartMonthly() {
+	    	  
+	    	  var year = $('#year-select').val();
+	    	  var month = $('#month-select').val();
+	    	  
+	    	  var filteredData = monthlySales.filter(function(sale) {
+	    	      return sale.year == year && sale.month == month;
+	    	  });
+	    	  
+	    	  
+	    	  chart = Highcharts.chart('sales-chart-container', {
+	    	        chart: {
+	    	            type: $('#chart-select').val()
+	    	        },
+	    	        title: {
+	    	            text: [[${employee}]] + "'s " + 'Monthly Sales Performance'
+	    	        },
+	    	        xAxis: {
+	    	            categories: filteredData.map(function(sale) {
+	    	                return days[sale.day-1]
+	    	            })
+	    	        },
+	    	        yAxis: {
+	    	            title: {
+	    	                text: 'Total Sales (USD)'
+	    	            }
+	    	        },
+	
+	    	        series: [{
+	    	            name: [[${employee}]],
+	    	            data: filteredData.map(function(sale) { 
+	    	            	return {
+	    	            		name: days[sale.day-1],
+	    	            		y: sale.totalSales,
+	    	       
+	    	            	};
+	    	            })
+	    	        }]
+	    	    }); 
+	    	  
+	      }
+	       
+	    function checkLogout() {
+			return confirm('Are you sure you want to log out?');
+		}
+	    	
+   </script>
+
+
+</body>
+</html>
