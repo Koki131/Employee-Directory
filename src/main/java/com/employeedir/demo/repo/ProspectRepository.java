@@ -12,7 +12,7 @@ import com.employeedir.demo.entity.Prospects;
 
 
 @Repository
-public interface ProspectRepo extends JpaRepository<Prospects, Integer> {
+public interface ProspectRepository extends JpaRepository<Prospects, Integer> {
 
 	@Query(value = "SELECT p FROM Prospects p WHERE p.employee.id=:employee_id")
 	List<Prospects> findAllProspectsById(@Param("employee_id") int employeeId);

@@ -8,6 +8,6 @@ import com.employeedir.demo.entity.ProspectLinks;
 
 
 @Repository
-public interface ProspectLinksRepo extends JpaRepository<ProspectLinks, Integer> {
+public interface ProspectLinksRepository extends JpaRepository<ProspectLinks, Integer> {
 
 }
