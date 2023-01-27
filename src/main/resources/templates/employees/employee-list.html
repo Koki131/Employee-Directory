@@ -24,6 +24,21 @@
 </style>
 </head>
 <body>
+	<nav id="nav" class="py-1 navbar navbar-expand-lg navbar-dark bg-dark">
+  		<div class="container-fluid">
+		    	<a class="navbar-brand mb-2" th:href="@{/}">Employee Directory</a>
+				    <div class="collapse navbar-collapse">
+				     	 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+				        	<li class="nav-item">
+				          		<a class="nav-link active me-4" aria-current="page" th:href="@{/}">Home</a>
+				        	</li>
+				      	</ul>
+				      	<form th:action="@{/logout}" method="POST">
+				      		<input type="submit" value="Logout" class="btn btn-danger btn-sm" onclick="return checkLogout()"/>
+				      	</form>
+		    		</div>
+  			</div>
+	</nav>
 	
 
 	<div class="container">
@@ -74,9 +89,9 @@
 					<td th:text="${employee.lastName}"/>
 					<td th:text="${employee.email}"/>
 					<td>
+						<a th:href="@{/showFormForUpdate(employeeId=${employee.id})}" class="btn btn-primary btn-sm">Update</a>
 						<a th:href="@{/delete(employeeId=${employee.id})}" class="btn btn-danger btn-sm"
 						   onclick="return confirmDelete()">Delete</a>
-						<a th:href="@{/sales/showFormForSales(employeeId=${employee.id})}" class="btn btn-success btn-sm">Sales</a>
 					</td>
 				</tr>
 			</tbody>
@@ -109,6 +124,10 @@
 	<script th:inline="javascript">
 		function confirmDelete() {
 			return confirm('Are you sure you want to delete this employee?');
+		}
+		
+		function checkLogout() {
+			return confirm('Are you sure you want to logout?');
 		}
 	</script>
 </body>

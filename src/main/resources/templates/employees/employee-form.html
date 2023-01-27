@@ -25,6 +25,21 @@
 
 </head>
 <body>
+	<nav id="nav" class="py-1 navbar navbar-expand-lg navbar-dark bg-dark">
+  		<div class="container-fluid">
+		    	<a class="navbar-brand mb-2" th:href="@{/}">Employee Directory</a>
+				    <div class="collapse navbar-collapse">
+				     	 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+				        	<li class="nav-item">
+				          		<a class="nav-link active me-4" aria-current="page" th:href="@{/}">Home</a>
+				        	</li>
+				      	</ul>
+				      	<form th:action="@{/logout}" method="POST">
+				      		<input type="submit" value="Logout" class="btn btn-danger btn-sm" onclick="return checkLogout()"/>
+				      	</form>
+		    		</div>
+  			</div>
+	</nav>
 
 	<div class="container">
 		<br>
