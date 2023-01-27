@@ -3,6 +3,7 @@ package com.employeedir.demo.entity;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -17,6 +18,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+
 
 
 
@@ -48,6 +50,9 @@ public class Employee {
 	
 	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "employee")
 	private List<Prospects> prospects;
+	
+	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "employee")
+	private List<Sales> sales;
 	
 	public Employee() {
 		
@@ -128,6 +133,29 @@ public class Employee {
 	public void setProspects(List<Prospects> prospects) {
 		this.prospects = prospects;
 	}
+
+	public List<Sales> getSales() {
+		return sales;
+	}
+
+	public void setSales(List<Sales> sales) {
+		this.sales = sales;
+	}
 	
+	public void addSale(Sales sale) {
+		if (sales == null) {
+			sales = new ArrayList<>();
+		}
+		
+		sales.add(sale);
+	}
 	
+	public void addProspect(Prospects prospect) {
+		
+		if (prospects == null) {
+			prospects = new ArrayList<>();
+		}
+		
+		prospects.add(prospect);
+	}
 }
