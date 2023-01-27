@@ -89,7 +89,7 @@
 					<td th:text="${employee.lastName}"/>
 					<td th:text="${employee.email}"/>
 					<td>
-						<a th:href="@{/showFormForUpdate(employeeId=${employee.id})}" class="btn btn-primary btn-sm">Update</a>
+						<a th:href="@{/showProspectList(employeeId=${employee.id})}" class="btn btn-primary btn-sm">Prospects</a>
 						<a th:href="@{/delete(employeeId=${employee.id})}" class="btn btn-danger btn-sm"
 						   onclick="return confirmDelete()">Delete</a>
 						<a th:href="@{/contact/showContactForm(employeeId=${employee.id})}" class="btn btn-secondary btn-sm">Contact</a>

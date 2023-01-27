@@ -26,7 +26,9 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.employeedir.demo.entity.Employee;
+import com.employeedir.demo.entity.Prospects;
 import com.employeedir.demo.service.EmployeeService;
+import com.employeedir.demo.service.ProspectService;
 
 
 @Controller
@@ -35,6 +37,9 @@ public class ContactController {
 	
 	@Autowired
 	private JavaMailSender mailSender;
+	
+	@Autowired
+	private ProspectService prospectService;
 	
 	
 	@Autowired
@@ -105,4 +110,71 @@ public class ContactController {
 		
 		return "redirect:/contact/showContactForm?employeeId=" + employeeId;
 	}
+	
+	@GetMapping("/showProspectContactForm")
+	public String showProspectContactForm(@RequestParam("prospectId") int prospectId, Model model) {
+		
+		Prospects prospect = prospectService.getProspect(prospectId);
+		model.addAttribute("prospect", prospect);
+		
+		
+		return "/prospects/prospect-contact-form";
+		
+	}
+	
+	@PostMapping("/sendProspectEmail")
+	public String sendProspectEmail(RedirectAttributes model, HttpServletRequest request, @ModelAttribute("prospect") Prospects prospect, 
+			@RequestParam("attachment") MultipartFile file, @RequestParam("prospectId") int prospectId) throws MessagingException, UnsupportedEncodingException {
+	
+		String fullName = request.getParameter("fullName");
+		String subject = request.getParameter("subject");
+		String email = request.getParameter("email");
+		String content = request.getParameter("content");
+		
+		MimeMessage message = mailSender.createMimeMessage();
+		MimeMessageHelper helper = new MimeMessageHelper(message, true);
+		
+		
+		
+		String mailSubject = fullName + " has sent a message";
+		
+		String mailContent = "<p><b>Sender Name:</b> " + fullName + "</p>";
+		
+		
+		mailContent += "<p><b>Subject:</b> " + subject + "</p>";
+		mailContent += "<p><b>Content:</b><br><br> " + content + "</p><br><br>";
+		mailContent += "<hr><img style='margin-bottom: 20px; width: 20%; height: 20%;'src='cid:logo-generic' />";
+		
+		
+		helper.setFrom("test32142@hotmail.com", "Big Business");
+		helper.setTo(email);
+		helper.setSubject(mailSubject);
+		helper.setText(mailContent, true);
+		
+		ClassPathResource classPath = new ClassPathResource("/static/images/logo-generic.png");
+		helper.addInline("logo-generic", classPath);
+		
+		if (!file.isEmpty()) {
+			String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+			
+			InputStreamSource source = new InputStreamSource() {
+				
+				@Override
+				public InputStream getInputStream() throws IOException {
+					return file.getInputStream();
+				}
+			};
+			
+			helper.addAttachment(fileName, source);
+		}
+		
+		
+		
+		mailSender.send(message);
+		
+		model.addFlashAttribute("emailSuccess", "E-mail sent successfully");
+		
+		return "redirect:/contact/showProspectContactForm?prospectId=" + prospectId;
+	}
 }
+
