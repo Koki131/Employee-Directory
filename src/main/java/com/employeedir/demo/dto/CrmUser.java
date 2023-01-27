@@ -5,9 +5,12 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+import com.employeedir.demo.validation.FieldMatch;
 
 
-
+@FieldMatch.List({
+	@FieldMatch(first = "password", second = "matchingPassword", message = "Passwords must match")
+})
 public class CrmUser {
 
 	
@@ -25,7 +28,7 @@ public class CrmUser {
 	
 	@NotEmpty
 	@Size(min = 3, message = "Must contain at least 3 characters")
-	@Pattern(regexp = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$", message = "Must contain at least 8 characters, one uppercase, symbol and number")
+	@Pattern(regexp = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$", message = "Must contain uppercase, symbol and number")
 	private String password;
 	
 	@NotEmpty
