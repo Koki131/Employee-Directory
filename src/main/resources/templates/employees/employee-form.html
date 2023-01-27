@@ -25,6 +25,7 @@
 
 </head>
 <body>
+
 	<nav id="nav" class="py-1 navbar navbar-expand-lg navbar-dark bg-dark">
   		<div class="container-fluid">
 		    	<a class="navbar-brand mb-2" th:href="@{/}">Employee Directory</a>
@@ -33,13 +34,16 @@
 				        	<li class="nav-item">
 				          		<a class="nav-link active me-4" aria-current="page" th:href="@{/}">Home</a>
 				        	</li>
+				        	<li class="nav-item" sec:authorize="hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')">
+				        		<a class="nav-link active me-4" aria-current="page" th:href="@{/sales/showPerformance}">Performance</a>
+				        	</li>
 				      	</ul>
 				      	<form th:action="@{/logout}" method="POST">
 				      		<input type="submit" value="Logout" class="btn btn-danger btn-sm" onclick="return checkLogout()"/>
 				      	</form>
 		    		</div>
   			</div>
-	</nav>
+	</nav>	
 
 	<div class="container">
 		<br>
@@ -71,7 +75,7 @@
 						<img id="thumbnail" style="width: 100px; height: 100px;">
 						<br><br>
 						<input th:if="${param.employeeId == null}" type="submit" value="Save" class="btn btn-primary btn" onclick="return checkSize() && checkEmail()">
-						<input th:if="${param.employeeId != null}" type="submit" value="Update" class="btn btn-primary btn" onclick="return checkSize() && checkEmail()">
+						<input th:if="${param.employeeId != null}" type="submit" value="Update" class="btn btn-primary btn" onclick="return checkSize() && checkEmail(	)">
 				</div>
 			</div>
 		</form>
@@ -102,7 +106,6 @@
 		}
 		
 		// VALIDATION
-		
 		function checkSize() {
 			const fileInput = document.getElementById('attachment');
 			const maxFileSize = 131072;
