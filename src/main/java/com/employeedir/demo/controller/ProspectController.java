@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.employeedir.demo.entity.Employee;
+import com.employeedir.demo.entity.ProspectLinks;
 import com.employeedir.demo.entity.Prospects;
 import com.employeedir.demo.service.EmployeeService;
+import com.employeedir.demo.service.ProspectLinkService;
 import com.employeedir.demo.service.ProspectService;
 
 
@@ -34,6 +36,8 @@ public class ProspectController {
 	@Autowired
 	private ProspectService prospectService;
 	
+	@Autowired
+	private ProspectLinkService linksService;
 	
 	@Autowired
 	private EmployeeService employeeService;
@@ -127,6 +131,46 @@ public class ProspectController {
 		model.addAttribute("prospect", prospect);
 		
 		return "/prospects/prospect-form";
+		
+	}
+	
+
+	@GetMapping("/showProspectLinks")
+	public String showProspectLinks(@RequestParam("prospectId") int id, Model model) {
+		
+		prospId = id;
+		
+		Prospects prospects = prospectService.getProspect(id);
+		
+		if (prospects.getProspectLinks() != null) {
+			
+			ProspectLinks links = linksService.getProspectLinks(prospects.getProspectLinks().getId());
+			
+			model.addAttribute("prospectLinks", links);
+			model.addAttribute("facebook", links.getFacebook());
+			model.addAttribute("instagram", links.getInstagram());
+			model.addAttribute("linkedin", links.getLinkedIn());
+			return "/prospects/prospect-links";
+			
+		}
+		
+		model.addAttribute("prospectLinks", new ProspectLinks());
+		
+		return "/prospects/prospect-links";
+		
+	}
+	
+	@PostMapping("/saveProspectLinks")
+	public String saveProspectLinks(@Valid @ModelAttribute("prospectLinks") ProspectLinks prospectLinks) {
+		
+		Prospects prospect = prospectService.getProspect(prospId);
+		
+		prospectLinks.setProspects(prospect);
+		
+		linksService.saveProspectLinks(prospectLinks);
+		
+		return "redirect:/showProspectList?employeeId=" + empId;
+		
 		
 	}
 	

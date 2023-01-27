@@ -36,6 +36,9 @@ public class Prospects {
 			+ "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$", message = "Example: test@domain.com")
 	@Column(name = "email")
 	private String email;
+	
+	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "prospects")
+	private ProspectLinks prospectLinks;
 
 	
 	public Prospects() {
@@ -80,7 +83,18 @@ public class Prospects {
 
 	public void setEmail(String email) {
 		this.email = email;
-	}	
+	}
+
+
+	public ProspectLinks getProspectLinks() {
+		return prospectLinks;
+	}
+
+
+	public void setProspectLinks(ProspectLinks prospectLinks) {
+		this.prospectLinks = prospectLinks;
+	}
+	
 	
 }
 

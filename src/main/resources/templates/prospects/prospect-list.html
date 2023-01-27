@@ -68,6 +68,7 @@
 						<a th:href="@{/deleteProspect(prospectId=${prospect.id})}" class="btn btn-danger btn-sm"
 						   onclick="if (!(confirm('Are you sure you want to delete this prospect?'))) return false;">Delete</a>
 						<a th:href="@{/contact/showProspectContactForm(prospectId=${prospect.id})}" class="btn btn-secondary btn-sm">Contact</a>
+						<a th:href="@{/showProspectLinks(prospectId=${prospect.id})}" class="btn btn-success btn-sm">Socials</a>
 					</td>
 				</tr>
 			</tbody>
