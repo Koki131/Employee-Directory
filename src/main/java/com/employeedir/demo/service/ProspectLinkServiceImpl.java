@@ -1,7 +1,7 @@
 package com.employeedir.demo.service;
 
 import com.employeedir.demo.entity.ProspectLinks;
-import com.employeedir.demo.repo.ProspectLinksRepo;
+import com.employeedir.demo.repo.ProspectLinksRepository;
 
 import javax.transaction.Transactional;
 
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class ProspectLinkServiceImpl implements ProspectLinkService {
 
 	@Autowired
-	private ProspectLinksRepo repo;
+	private ProspectLinksRepository repo;
 	
 	@Override
 	@Transactional

@@ -8,14 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.employeedir.demo.entity.Prospects;
-import com.employeedir.demo.repo.ProspectRepo;
+import com.employeedir.demo.repo.ProspectRepository;
 
 
 @Service
 public class ProspectServiceImpl implements ProspectService {
 
 	@Autowired 
-	private ProspectRepo prospectRepo;
+	private ProspectRepository prospectRepo;
 	
 	@Override
 	@Transactional
