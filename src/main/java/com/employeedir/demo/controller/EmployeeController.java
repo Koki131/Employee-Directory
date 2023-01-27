@@ -34,14 +34,23 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.employeedir.demo.entity.Employee;
 import com.employeedir.demo.service.EmployeeService;
 
+
+
 @Controller
 public class EmployeeController {
 
 	private String imageName;
 	
+	
 	@Autowired
 	private EmployeeService employeeService;
 	
+	
+	@GetMapping("/accessDenied")
+	public String accessDenied() {
+		
+		return "accessDenied";
+	}
 	
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
@@ -49,10 +58,12 @@ public class EmployeeController {
 		
 		binder.registerCustomEditor(String.class, trimmer);
 	}
+
+	/* ---- PAGINATION, SORTING and FILTERING ----*/
 	
 	@GetMapping("/{pageNum}")
-	public String list(Model model, @PathVariable("pageNum") int pageNum, @RequestParam("sortField") String sortField, 
-			@RequestParam("sortDir") String sortDir, @RequestParam(required = false, name = "keyword") String keyword) {
+	public String list(Model model, @PathVariable("pageNum") int pageNum, @RequestParam("sortField") String sortField, @RequestParam("sortDir") String sortDir, 
+			@RequestParam(required = false, name = "keyword") String keyword) {
 		
 		Page<Employee> page = employeeService.findPage(pageNum, sortField, sortDir, keyword);
 		int totalPages = page.getTotalPages();
@@ -62,8 +73,8 @@ public class EmployeeController {
 		model.addAttribute("pageNum", pageNum);
 		model.addAttribute("sortField", sortField);
 		model.addAttribute("sortDir", sortDir);
-		model.addAttribute("keyword", keyword);
 		model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+		model.addAttribute("keyword", keyword);
 		
 		model.addAttribute("totalPages", totalPages);
 		model.addAttribute("totalItems", totalItems);
@@ -71,7 +82,6 @@ public class EmployeeController {
 		model.addAttribute("employees", employees);
 		
 		return "/employees/employee-list";
-		
 	}
 	
 	@GetMapping("/")
@@ -80,29 +90,48 @@ public class EmployeeController {
 		return list(model, 1, "firstName", "asc", keyword);
 	}
 	
+	/* ---- END ---- */
+	
+	// a method that shows the form to add a new employee
+	
 	@GetMapping("/showFormForAdd")
-	public String showFormForAdd(Model model) {
+	public String showFormForAdd(Model model, HttpServletRequest request) {
 		
-		List<Employee> employees = employeeService.findAll();
-		List<String> emails = new ArrayList<>();
 		
-		// fetching all e-mails and sending them to the view for e-mail validation
 		
-		for (Employee emp : employees) {
-			emails.add(emp.getEmail());
+		if (request.isUserInRole("ROLE_MANAGER") || request.isUserInRole("ROLE_ADMIN")) {
+			
+			List<Employee> employees = employeeService.findAll();
+			List<String> emails = new ArrayList<>();
+			
+			// fetching all e-mails and sending them to the view for e-mail validation
+			
+			for (Employee emp : employees) {
+				emails.add(emp.getEmail());
+			}
+		
+		
+			model.addAttribute("employee", new Employee());
+			model.addAttribute("mails", emails);
+			
+			
+			return "/employees/employee-form";
+			
+		} else {
+			
+			return "redirect:/accessDenied";
 		}
-	
-	
-		model.addAttribute("employee", new Employee());
-		model.addAttribute("mails", emails);
-		
-		
-		return "/employees/employee-form";
 	}
+	
+	// save the employee
 	
 	@PostMapping("/save")
 	public String saveEmployee(@Valid @ModelAttribute("employee") Employee employee, BindingResult result, 
 			@RequestParam("fileImage") MultipartFile multipartFile, HttpServletRequest request, Model model) throws IOException {
+		
+		
+		if (request.isUserInRole("ROLE_MANAGER") || request.isUserInRole("ROLE_ADMIN")) {
+			
 						
 			String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
 			
@@ -153,10 +182,19 @@ public class EmployeeController {
 			}
 			
 			return "redirect:/";
+			
+		} else {
+			
+			return "redirect:/accessDenied";
 		}
+	}
+	
+	// update employee
 	
 	@GetMapping("/showFormForUpdate")
 	public String showFormForUpdate(@RequestParam("employeeId") int employeeId, Model model, HttpServletRequest request) {
+		
+		if (request.isUserInRole("ROLE_MANAGER") || request.isUserInRole("ROLE_ADMIN")) {
 		
 			Employee employee = employeeService.getEmployee(employeeId);
 			
@@ -167,14 +205,22 @@ public class EmployeeController {
 			
 			return "/employees/employee-form";
 		
+		} else {
+			
+			return "redirect:/accessDenied";
+		}
 	}
+	
+	// delete employee
 	
 	@GetMapping("/delete")
 	public String deleteEmployee(@RequestParam("employeeId") int employeeId, HttpServletRequest request, RedirectAttributes model) throws IOException {
+		
+		if (request.isUserInRole("ROLE_ADMIN")) {
 	
 			employeeService.delete(employeeId);
 	
-			String filePath = "/home/koki/eclipse-workspace/employee-dir/employee-images/" + employeeId;	
+			String filePath = "/home/koki/eclipse-workspace/employee-directory-main/employee-images/" + employeeId;	
 	
 			Path path = Paths.get(filePath);
 			
@@ -185,5 +231,10 @@ public class EmployeeController {
 			model.addFlashAttribute("deleteSuccess", "Employee deleted successfully");
 			
 			return "redirect:/";
+			
+		} else {
+			return "redirect:/accessDenied";
+		}
+		
 	}
 }
