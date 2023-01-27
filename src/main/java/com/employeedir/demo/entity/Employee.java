@@ -3,6 +3,7 @@ package com.employeedir.demo.entity;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -16,6 +17,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+
 
 
 @Entity
@@ -43,6 +45,9 @@ public class Employee {
 	
 	@Column(name = "image")
 	private String image;
+	
+	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "employee")
+	private List<Prospects> prospects;
 	
 	public Employee() {
 		
@@ -115,5 +120,14 @@ public class Employee {
 		
 		return Files.isDirectory(uploadPath);
 	}
+
+	public List<Prospects> getProspects() {
+		return prospects;
+	}
+
+	public void setProspects(List<Prospects> prospects) {
+		this.prospects = prospects;
+	}
+	
 	
 }

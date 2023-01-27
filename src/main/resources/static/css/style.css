@@ -1,0 +1,71 @@
+@charset "UTF-8";
+
+
+.errors {
+	color: red;
+}
+
+#nav a {
+  background:
+    linear-gradient(
+      to right,
+      rgba(100, 200, 200, 1),
+      rgba(100, 200, 200, 1)
+    ),
+    linear-gradient(
+      to right,
+      rgba(255, 0, 0, 1),
+      rgba(255, 0, 180, 1),
+      rgba(0, 100, 200, 1)
+  );
+  background-size: 0 3px, 0 3px;
+  border-radius: 10px;
+  background-position: 100% 100%, 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 400ms;
+  padding: 5px;
+} 
+
+
+
+
+#nav a:hover {
+  background-size: 0 3px, 100% 3px;
+  padding: 5px;
+  border-radius: 10px;
+}
+
+
+#links:hover {
+	animation-name: link;
+	animation-fill-mode: both;
+	animation-duration: 0.5s;
+}
+
+
+@keyframes link {
+	100% {width: 30px; height: 30px;}
+}
+
+/* #nav:hover {
+  background-size: 0 3px, 100% 3px;
+}
+
+#nav {
+  background:
+    linear-gradient(
+      to right,
+      rgba(100, 200, 200, 1),
+      rgba(100, 200, 200, 1)
+    ),
+    linear-gradient(
+      to right,
+      rgba(255, 0, 0, 1),
+      rgba(255, 0, 180, 1),
+      rgba(0, 100, 200, 1)
+  );
+  background-size: 0 3px, 0 3px;
+  background-position: 100% 100%, 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 400ms;
+} */
