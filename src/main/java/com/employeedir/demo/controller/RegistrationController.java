@@ -19,8 +19,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.employeedir.demo.dto.CrmUser;
+import com.employeedir.demo.dto.CrmUserBuilder;
 import com.employeedir.demo.model.User;
 import com.employeedir.demo.securityservice.UserService;
+
 
 
 
@@ -75,7 +77,13 @@ public class RegistrationController {
 		User userEmail = userService.findUserByEmail(email);
 		
 		if (user != null || userEmail != null) {
-			model.addAttribute(new CrmUser(crmUser.getFirstName(), crmUser.getLastName(), crmUser.getPassword(), crmUser.getMatchingPassword(), crmUser.getFormRole()));
+			String firstName = crmUser.getFirstName();
+			String lastName = crmUser.getLastName();
+			String formRole = crmUser.getFormRole();
+			
+			model.addAttribute("crmUser", new CrmUserBuilder().setFirstName(firstName).setLastName(lastName).
+										setFormRole(formRole).getCrmUser());
+			
 			model.addAttribute("registrationError", "Invalid Username or email");
 			model.addAttribute("roles", roles);
 			

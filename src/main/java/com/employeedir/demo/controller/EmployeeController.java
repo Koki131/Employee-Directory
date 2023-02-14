@@ -220,7 +220,8 @@ public class EmployeeController {
 	
 			employeeService.delete(employeeId);
 	
-			String filePath = "/home/koki/eclipse-workspace/employee-directory-main/employee-images/" + employeeId;	
+			// Your full path to the image folder
+			String filePath = "/home/user/eclipse-workspace/employee-dir/employee-images/" + employeeId;	
 	
 			Path path = Paths.get(filePath);
 			
