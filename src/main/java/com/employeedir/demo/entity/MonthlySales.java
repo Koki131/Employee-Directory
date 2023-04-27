@@ -38,6 +38,13 @@ public class MonthlySales implements Comparable<MonthlySales> {
 		
 	}
 
+	public MonthlySales(int day, int month, int year, BigDecimal totalSales) {
+		this.day = day;
+		this.month = month;
+		this.year = year;
+		this.totalSales = totalSales;
+	}
+
 	public Long getId() {
 		return id;
 	}

@@ -131,8 +131,8 @@ public class EmployeeController {
 		
 		
 		if (request.isUserInRole("ROLE_MANAGER") || request.isUserInRole("ROLE_ADMIN")) {
-			
-						
+
+
 			String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
 			
 			
@@ -144,8 +144,7 @@ public class EmployeeController {
 			} else {
 				employee.setImage(imageName);
 			}
-			
-			// 
+
 			
 			if (result.hasErrors()) {
 				
@@ -184,7 +183,7 @@ public class EmployeeController {
 			return "redirect:/";
 			
 		} else {
-			
+
 			return "redirect:/accessDenied";
 		}
 	}
@@ -221,7 +220,7 @@ public class EmployeeController {
 			employeeService.delete(employeeId);
 	
 			// Your full path to the image folder
-			String filePath = "/home/user/eclipse-workspace/employee-dir/employee-images/" + employeeId;	
+			String filePath = "C:\\your\\full\\path\\employee-directory\\employee-images\\" + employeeId;
 	
 			Path path = Paths.get(filePath);
 			

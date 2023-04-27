@@ -51,7 +51,7 @@ CREATE TABLE `prospect_links` (
   `link_id` INT NOT NULL AUTO_INCREMENT,
   `prospect_id` INT NULL DEFAULT NULL,
   `linkedin` VARCHAR(2083) NOT NULL,
-  `skype` VARCHAR(2083) NOT NULL,
+  `instagram` VARCHAR(2083) NOT NULL,
   `facebook` VARCHAR(2083) NOT NULL,
   PRIMARY KEY (`link_id`),
   INDEX `links_ibfk_1` (`prospect_id` ASC),

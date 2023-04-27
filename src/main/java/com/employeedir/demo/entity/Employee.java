@@ -158,4 +158,17 @@ public class Employee {
 		
 		prospects.add(prospect);
 	}
+
+	@Override
+	public String toString() {
+		return "Employee{" +
+				"id=" + id +
+				", firstName='" + firstName + '\'' +
+				", lastName='" + lastName + '\'' +
+				", email='" + email + '\'' +
+				", image='" + image + '\'' +
+				", prospects=" + prospects +
+				", sales=" + sales +
+				'}';
+	}
 }

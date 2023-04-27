@@ -45,6 +45,10 @@ public class Prospects {
 		
 	}
 
+	public Prospects(String fullName, String email) {
+		this.fullName = fullName;
+		this.email = email;
+	}
 
 	public int getId() {
 		return id;

@@ -80,7 +80,7 @@ public class ContactController {
 		mailContent += "<hr><img style='margin-bottom: 20px; width: 20%; height: 20%;'src='cid:logo-generic' />";
 		
 		// Enter same e-mail as application.properties
-		helper.setFrom("*** YOUR OUTLOOK E-MAIL ***", "Big Business");
+		helper.setFrom("your-outlook-email@hotmail.com", "Big Business");
 		helper.setTo(email);
 		helper.setSubject(mailSubject);
 		helper.setText(mailContent, true);
@@ -147,7 +147,7 @@ public class ContactController {
 		
 		
 		// Enter same e-mail as application.properties
-		helper.setFrom("*** YOUR OUTLOOK E-MAIL ***", "Big Business");
+		helper.setFrom("your-outlook-email@hotmail.com", "Big Business");
 		helper.setTo(email);
 		helper.setSubject(mailSubject);
 		helper.setText(mailContent, true);

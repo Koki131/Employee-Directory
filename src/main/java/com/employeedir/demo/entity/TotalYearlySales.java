@@ -34,6 +34,12 @@ public class TotalYearlySales {
 		
 	}
 
+	public TotalYearlySales(String fullName, int year, BigDecimal totalSales) {
+		this.fullName = fullName;
+		this.year = year;
+		this.totalSales = totalSales;
+	}
+
 	public Long getId() {
 		return id;
 	}

@@ -17,7 +17,7 @@ public class Config implements WebMvcConfigurer {
 		
 		String imageUploadPath = imageUploadDir.toFile().getAbsolutePath();
 		
-		registry.addResourceHandler("/employee-images/**").addResourceLocations("file://" + imageUploadPath + "/");
+		registry.addResourceHandler("/employee-images/**").addResourceLocations("file:/" + imageUploadPath + "/");
 	}
 
 	
