@@ -2,7 +2,7 @@
 
 Spring Boot employee management CRUD app with realtime chat and push notifications
 
-# Installation 
+# Setup 
 
 Clone the repository
 
