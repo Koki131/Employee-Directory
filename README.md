@@ -18,7 +18,7 @@ $ git clone https://github.com/Koki131/employee-directory.git
 
 OR
 
-- Run the executable .jar under /target (might perform poorly, since it's using a free tier public database or might just not work at all)
+- Run the executable .jar (might perform poorly, since it's using a free tier public database or might just not work at all)
 
 - Java 17+ required
 
