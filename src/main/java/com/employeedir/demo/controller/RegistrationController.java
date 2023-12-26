@@ -1,7 +1,11 @@
 package com.employeedir.demo.controller;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
@@ -10,20 +14,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import com.employeedir.demo.dto.CrmUser;
 import com.employeedir.demo.dto.CrmUserBuilder;
 import com.employeedir.demo.model.User;
 import com.employeedir.demo.securityservice.UserService;
-
-
+import org.springframework.web.multipart.MultipartFile;
 
 
 @Controller
@@ -63,20 +63,33 @@ public class RegistrationController {
 	}
 	
 	@PostMapping("/processRegistrationForm")
-	public String processRegistration(@Valid @ModelAttribute("crmUser") CrmUser crmUser, BindingResult result, Model model) {
-		
+	public String processRegistration(@Valid @ModelAttribute("crmUser") CrmUser crmUser, @RequestParam("fileImage") MultipartFile multipartFile, BindingResult result, Model model) throws IOException {
+
 		if (result.hasErrors()) {
 			model.addAttribute("roles", roles);
 			return "registrationPage";
 		}
-		
+
+		String fileName = StringUtils.cleanPath(Objects.requireNonNull(multipartFile.getOriginalFilename()));
+
+		if (!fileName.isEmpty()) {
+			crmUser.setImage(fileName);
+		}
+
+		String uploadDir = "./profile-images/" + crmUser.getUserName();
+
+		Path uploadPath = Paths.get(uploadDir);
+
 		String userName = crmUser.getUserName();
 		String email = crmUser.getEmail();
-		
+
 		User user = userService.findUserByName(userName);
 		User userEmail = userService.findUserByEmail(email);
-		
+
+
 		if (user != null || userEmail != null) {
+
+
 			String firstName = crmUser.getFirstName();
 			String lastName = crmUser.getLastName();
 			String formRole = crmUser.getFormRole();
@@ -86,15 +99,18 @@ public class RegistrationController {
 			
 			model.addAttribute("registrationError", "Invalid Username or email");
 			model.addAttribute("roles", roles);
+
 			
 			return "registrationPage";
 		}
-		
-		
+
+
 		userService.save(crmUser);
 		model.addAttribute("registrationSuccess", "Registration successful for user " + crmUser.getUserName());
 		
 		return "loginPage";
 	}
-	
+
+
+
 }

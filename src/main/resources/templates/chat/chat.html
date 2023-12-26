@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"  />
+    <link rel="shortcut icon" href="#">
+    <title>Chat</title>
+</head>
+<body>
+
+
+<div id="chat-container">
+        <div id="chat-navbar">
+            <div id="nav-header">
+                <a class="nav-link" th:href="@{/}">Employee Directory</a>
+            </div>
+            <div id="nav-items">
+                <ul>
+                    <li>
+                        <div th:replace="fragments/_imageUploadFragment.html :: image-upload-fragment(user=${currentUser})"></div>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')">
+                        <a class="nav-link active me-4" aria-current="page" th:href="@{/}">Home</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ROLE_EMPLOYEE')">
+                        <a class="nav-link active me-4" aria-current="page" th:href="@{/sales/showPerformance}">Performance</a>
+                    </li>
+                </ul>
+            </div>
+            <div id="nav-logout">
+                <form th:action="@{/logout}" method="POST">
+                    <input type="submit" value="Logout" id="logout-button" onclick="if (!(confirm('Are you sure you want to logout?'))) return false;"/>
+                </form>
+            </div>
+        </div>
+
+        <div id="users-container">
+            <h3 id="users-container-general-chat" style="text-align: center">#General Chat</h3>
+            <table id="users-container-table">
+                <thead>
+                    <tr><th>Conversations</th></tr>
+                    <tr>
+                        <th>
+                            <input type="text" id="search" name="search" placeholder="Find user">
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+
+        </div>
+        <div id="chat-messages-container">
+            <div id="chat-messages">
+                <table>
+
+                </table>
+            </div>
+            <div id="message-container">
+                <div id="get-emoji" style="display: none;">
+                    <i class="fa-regular fa-face-smile"></i>
+                    <div id="emoji-container" style="display: none;">
+
+                    </div>
+                </div>
+                <div>
+                    <div id="public-message-container" style="display: none;">
+                        <form action="#" id="public-message-form">
+                            <input class="message-input" type="text" id="message" placeholder="Type your message..." maxlength="2000">
+                            <button class="send-message" id="send-button" type="submit"><i class="fa-solid fa-paper-plane"></i></button>
+                        </form>
+
+                    </div>
+
+                    <div id="private-message-container" style="display: none;">
+                        <form action="#" id="private-message-form">
+                            <input class="message-input" type="text" id="private-message" placeholder="Private message..." maxlength="2000">
+                            <button class="send-message" id="send-private-button" type="submit"><i class="fa-solid fa-paper-plane"></i></button>
+                        </form>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+
+        </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script th:src="@{/js/websocket.js}" defer="defer"></script>
+<script th:src="@{/js/imageUploadUtil.js}" defer="defer"></script>
+<script th:inline="javascript" type="module">
+
+
+    stompClient.debug = () => {}
+
+
+    let user = null;
+    let recipient = null;
+
+    const privateSubscriptions = {};
+    const privateMessagesSubscriptions = {};
+    const privateMessages = {};
+    let globalMessages = null;
+    const endpoints = [];
+    const userTableRows = [];
+    const messageCount = [];
+    const currentUsers = [];
+
+    const emojis = [
+        128512,
+        128513,
+        128514,
+        128515,
+        128516,
+        128517,
+        128518,
+        128519,
+        128520,
+        128521,
+        128522
+    ];
+
+    let generalChatClicked = false;
+    let prevUser = null;
+
+    const messagesContainer = document.querySelector("#chat-messages");
+
+    const table = document.querySelector('#chat-messages-container table');
+
+
+    async function onConnected() {
+
+        const stompClient = await connectStompClient();
+
+        fetchUserData();
+
+        // Subscribe to global chat
+
+        stompClient.subscribe('/topic/chat', function (message) {
+            // Handle incoming chat messages
+            const chatMessage = JSON.parse(message.body);
+
+            globalMessages = chatMessage.globalMessages;
+
+            if (recipient === null && generalChatClicked) {
+                displayMessage(chatMessage);
+            }
+
+        });
+
+        // Subscribe to join
+
+        stompClient.subscribe('/topic/join', function (message) {
+            // Handle incoming chat messages
+            const chatMessage = JSON.parse(message.body);
+
+
+            displayUsers(chatMessage);
+
+
+            globalMessages = chatMessage.globalMessages;
+
+        });
+
+        // Fetch the user details from the server
+        stompClient.send('/app/chat.join', {}, JSON.stringify(user));
+
+        
+
+        // Function to display a chat message
+        function displayMessage(chatMessage) {
+
+            const date = new Date(chatMessage.timestamp);
+
+            const tr = document.createElement("tr");
+            const divTd = document.createElement("div");
+            const td = document.createElement("td");
+            const nameDiv = document.createElement("div");
+            const textDiv = document.createElement("div");
+            const timeDiv = document.createElement("div");
+
+            const divImg = document.createElement("div");
+            const img = new Image();
+            divTd.id = "td-div";
+            divImg.id = "img-div";
+
+            const messageSender = chatMessage.sender;
+
+            messageSender.image === null ? img.src = "/images/avatar.png" : img.src = `/profile-images/${messageSender.userName}/${messageSender.image}`;
+
+            nameDiv.id = "name-div";
+            textDiv.id = "text-div";
+            timeDiv.id = "time-div";
+            nameDiv.textContent = messageSender.userName !== user.userName ? messageSender.userName : "You";
+            timeDiv.textContent = `${date.getHours()}:${date.getMinutes()}`;
+
+            td.classList.add("u");
+            tr.classList.add("u-tr");
+
+            td.append(textDiv, timeDiv);
+            divTd.appendChild(td);
+            divImg.append(img, nameDiv);
+
+            if (messageSender.userName !== user.userName) {
+                tr.append(divImg, divTd);
+                tr.style = "display: grid; grid-template: 1fr / 1fr 15fr; justify-items: start;";
+                timeDiv.style.textAlign = "end";
+                textDiv.style.textAlign = "start";
+                divTd.style.backgroundColor = "#ffffff";
+                divTd.style.color = "#000000";
+            } else {
+                tr.append(divTd, divImg);
+                tr.style = "display: grid; grid-template: 1fr / 15fr 1fr; justify-items: end;";
+                timeDiv.style.textAlign = "start";
+                textDiv.style.textAlign = "end";
+                divTd.style.backgroundColor = "#3694e5";
+                divTd.style.color = "#ffffff";
+            }
+
+
+            textDiv.textContent = `${chatMessage.content}`;
+
+            setTimeout(function () {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 0);
+
+            table.append(tr);
+        }
+
+        function displayConversations(messages) {
+
+            messages.forEach(msg => {
+
+                displayMessage(msg);
+
+            });
+        }
+
+
+
+        // Function to fetch user details from the server
+        function fetchUserData() {
+
+            user = [[${currentUser}]]; // Set the user object
+
+        }
+
+        function displayUsers(users) {
+
+            const usrs = users.users;
+            const messagesReceived = users.messageCount;
+            const allConvos = users.allConvos;
+
+
+            const privateMessageContainer = document.querySelector("#private-message-container");
+            const publicMessageContainer = document.querySelector("#public-message-container");
+            const emojiContainer = document.querySelector("#get-emoji");
+            const emojiTable = document.querySelector("#emoji-container");
+            const generalChat = document.querySelector("#users-container-general-chat");
+            const table = document.querySelector("#users-container-table tbody");
+
+            for (let u of usrs) {
+
+                if (!currentUsers.includes(u.userName) && u.userName !== user.userName) {
+
+                    currentUsers.push(u.userName);
+
+                    const tr = document.createElement("tr");
+                    const divTd = document.createElement("div");
+                    const nameTd = document.createElement("td");
+                    const p1 = document.createElement("p");
+                    const recentMsgTd = document.createElement("td");
+                    const msgText = document.createElement("p");
+                    const msgTime = document.createElement("p");
+                    const divImg = document.createElement("div");
+                    const img = new Image();
+                    const countDiv = document.createElement("div");
+
+                    userTableRows[u.userName] = tr;
+
+                    messageCount[u.userName] = 0;
+
+
+                    p1.textContent = u.userName;
+
+
+                    if (allConvos[u.userName] && allConvos[u.userName] !== null) {
+
+                        const date = new Date(allConvos[u.userName].timestamp);
+
+                        msgTime.textContent = date.getHours() + ":" + date.getMinutes();
+                    }
+
+                    msgText.textContent = allConvos[u.userName] ? allConvos[u.userName].content : "No messages";
+
+                    divTd.id = "td-div";
+                    divImg.id = "img-div";
+                    msgTime.classList.add("msg-time");
+                    recentMsgTd.classList.add("recent-msg-td");
+                    p1.classList.add("p-name");
+                    countDiv.classList.add("no-of-messages");
+                    nameTd.classList.add("u");
+                    msgText.classList.add("msg-u");
+                    tr.classList.add("u-tr");
+
+                    u.image === null ? img.src = "/images/avatar.png" : img.src = `/profile-images/${u.userName}/${u.image}`;
+
+
+                    // function to enable general chat
+                    makeGeneralChatClickable(privateMessageContainer, publicMessageContainer, emojiContainer, emojiTable, generalChat);
+                    // function to enable private messaging between users
+                    makeUserClickable(tr, privateMessageContainer, publicMessageContainer, emojiContainer, emojiTable, generalChat);
+                    // function to enable emojis
+                    makeEmojiTableClickable(emojiContainer, emojiTable);
+
+                    // Subscribe to recipients
+                    nameTd.appendChild(p1);
+                    recentMsgTd.append(msgText, msgTime);
+                    divTd.append(nameTd, recentMsgTd);
+                    divImg.appendChild(img);
+                    tr.append(divImg, divTd, countDiv);
+
+
+                    if (messagesReceived[u.userName] && messagesReceived[u.userName][user.userName]) {
+
+                        messageCount[u.userName] = messagesReceived[u.userName][user.userName];
+
+                        countDiv.textContent = messagesReceived[u.userName][user.userName];
+                        countDiv.style.backgroundColor = "#3694e5";
+                        table.prepend(tr);
+
+                    } else {
+                        table.append(tr);
+                    }
+
+
+                    const endpoint = `/user/${user.userName}/private/${u.userName}`;
+
+                    // Storing endpoints to avoid multiple subscriptions
+
+                    if (!endpoints.includes(endpoint)) {
+
+                        endpoints.push(endpoint);
+
+                        stompClient.subscribe(endpoint, function (message) {
+
+                            const receivedMessageTd = userTableRows[u.userName].querySelector(".msg-u");
+                            const recentMessageTime = userTableRows[u.userName].querySelector(".msg-time");
+
+                            // Handle incoming chat messages, which includes your own sent messages
+                            const chatMessage = JSON.parse(message.body);
+
+                            receivedMessageTd.textContent = chatMessage.content;
+
+                            privateMessages[u.userName] = chatMessage.messages;
+
+                            const date = new Date();
+                            recentMessageTime.textContent = date.getHours() + ":" + date.getMinutes();
+
+                            if (recipient === u.userName) {
+
+                                displayMessage(chatMessage);
+
+                            } else {
+
+                                // Increment unseen message count
+
+                                const count = userTableRows[u.userName].querySelector(".no-of-messages");
+
+
+                                table.prepend(tr);
+                                count.textContent = ++messageCount[u.userName];
+                                count.style.backgroundColor = "#3694e5";
+
+                            }
+
+                        });
+                    }
+
+                }
+            }
+            const sender = [[${notificationSender}]];
+
+            if (sender) {
+                openNotificationConversation(sender, privateMessageContainer);
+            }
+        }
+
+
+        function makeEmojiTableClickable(emojiContainer, emojiTable) {
+
+            let clickedEmoji = false;
+
+            emojiContainer.addEventListener("click", function () {
+
+                emojiTable.innerHTML = "";
+
+                if (!clickedEmoji) {
+                    emojiTable.style.display = "grid"
+                    clickedEmoji = true;
+                } else {
+                    emojiTable.style.display = "none"
+                    clickedEmoji = false;
+                }
+
+
+                emojis.forEach(emoji => {
+
+                    const div = document.createElement("div");
+                    div.innerHTML = '&#' + emoji;
+                    emojiTable.appendChild(div);
+
+                    div.addEventListener("click", function () {
+
+                        const publicMessageInput = document.querySelector("#message");
+                        const privateMessageInput = document.querySelector("#private-message");
+
+                        if (generalChatClicked) {
+                            publicMessageInput.value += div.textContent;
+                        } else {
+                            privateMessageInput.value += div.textContent;
+                        }
+
+                    });
+
+                });
+
+            });
+        }
+
+        function makeGeneralChatClickable(privateMessageContainer, publicMessageContainer, emojiContainer, emojiTable, generalChat) {
+
+            generalChat.addEventListener("click", function () {
+
+                table.textContent = "";
+
+                generalChatClicked = true;
+                emojiTable.style.display = "none";
+
+                privateMessageContainer.style.display = "none";
+                generalChat.classList.add("chat-active");
+                publicMessageContainer.style.display = "grid";
+                emojiContainer.style.display = "flex";
+
+                if (globalMessages !== null) {
+                    displayConversations(globalMessages);
+                }
+
+                recipient = null;
+
+                if (prevUser !== null) {
+                    prevUser.classList.remove("chat-active");
+                }
+
+            });
+        }
+
+        function makeUserClickable(usr, privateMessageContainer, publicMessageContainer, emojiContainer, emojiTable, generalChat) {
+
+            if (usr.getAttribute("listener") !== "true") {
+
+                usr.setAttribute("listener", "true");
+
+                usr.addEventListener("click", function () {
+
+                    const u = usr.querySelector("#td-div .u .p-name");
+
+                    generalChatClicked = false;
+
+                    privateMessageContainer.style.display = "grid";
+                    publicMessageContainer.style.display = "none";
+                    emojiContainer.style.display = "flex";
+                    emojiTable.style.display = "none";
+
+                    if (prevUser !== null) {
+                        prevUser.classList.remove("chat-active");
+                    }
+
+                    generalChat.classList.remove("chat-active");
+                    usr.classList.add("chat-active");
+                    prevUser = usr;
+
+                    recipient = u.textContent;
+
+
+                    // Subscribe to sender's private messages
+
+                    table.textContent = "";
+
+                    if (privateSubscriptions[recipient]) {
+                        privateSubscriptions[recipient].unsubscribe();
+                    }
+
+                    if (privateMessagesSubscriptions[recipient]) {
+                        privateMessagesSubscriptions[recipient].unsubscribe();
+                    }
+
+                    stompClient.send(`/app/chat.privjet.${user.userName}.${recipient}`, {}, JSON.stringify(user));
+
+
+                    // Subscription to display all conversations between two users
+
+                    privateMessagesSubscriptions[recipient] = stompClient.subscribe(`/user/${recipient}/privateMessages/${user.userName}`, function (message) {
+
+                        const chatMessage = JSON.parse(message.body);
+
+                        privateMessages[recipient] = chatMessage.messages;
+
+
+                        if (privateMessages[recipient]) {
+
+                            displayConversations(privateMessages[recipient]);
+
+                            messageCount[recipient] = 0;
+
+                            const count = userTableRows[recipient].querySelector(".no-of-messages");
+
+                            count.textContent = "";
+                            count.style.backgroundColor = "";
+                        }
+
+                    });
+
+                    // Subscribe to another users private message channel
+
+                    privateSubscriptions[recipient] = stompClient.subscribe(`/user/${recipient}/private/${user.userName}`, function (message) {
+
+                        const recentMessageTime = userTableRows[recipient].querySelector(".msg-time");
+                        const receivedMessageTd = userTableRows[recipient].querySelector(".msg-u");
+                        // Handle incoming chat messages
+                        const chatMessage = JSON.parse(message.body);
+
+                        receivedMessageTd.textContent = chatMessage.content;
+                        privateMessages[recipient] = chatMessage.messages;
+
+                        const date = new Date();
+                        recentMessageTime.textContent = date.getHours() + ":" + date.getMinutes();
+
+                        if (chatMessage.content !== "") {
+                            displayMessage(chatMessage);
+                        }
+
+                    });
+
+
+                });
+
+            }
+        }
+
+        function openNotificationConversation(sender, privateMessageContainer) {
+
+            const users = document.querySelectorAll("#users-container .u-tr");
+            const input = privateMessageContainer.querySelector("#private-message");
+
+
+            users.forEach(user => {
+
+                const usr = user.querySelector("#td-div .u .p-name").textContent;
+
+                if (usr === sender.userName) {
+                    user.click();
+                    input.focus();
+                }
+
+            });
+        }
+
+        // Function to send a chat message
+        function sendMessage() {
+
+            const messageInput = document.getElementById('message');
+            const message = messageInput.value;
+
+            if (user !== null) {
+                // Create a new message object
+                const newMessage = {
+                    sender: user,
+                    content: message,
+                    timestamp: new Date(),
+                };
+
+                // Send the message to the server
+                if (newMessage.content !== "") {
+                    stompClient.send('/app/chat.send', {}, JSON.stringify(newMessage));
+                }
+
+
+                // Clear the input field
+                messageInput.value = '';
+
+                setTimeout(function () {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 0);
+
+            }
+        }
+
+        function sendPrivateMessage() {
+
+            const messageInput = document.getElementById('private-message');
+            const message = messageInput.value;
+
+            if (recipient !== null && message.trim() !== "") {
+                const privateMessage = {
+                    sender: user,
+                    recipient: recipient,
+                    content: message,
+                    timestamp: new Date(),
+                };
+
+                setTimeout(function () {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 0);
+
+                // Send private message
+                stompClient.send(`/app/chat.private.${recipient}`, {}, JSON.stringify(privateMessage));
+
+                // Notify user app wide
+                stompClient.send(`/app/chat.notify.${recipient}`, {}, JSON.stringify(privateMessage));
+
+                messageInput.value = "";
+            }
+
+        }
+
+
+
+        document.getElementById('public-message-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            sendMessage();
+        });
+        document.getElementById('private-message-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            sendPrivateMessage();
+        });
+
+
+        // Client side search
+
+        (function findUser() {
+
+            const search = document.querySelector("#search");
+
+            search.addEventListener("keyup", function () {
+
+                const users = document.querySelectorAll("#users-container table tbody .u-tr");
+
+                const val = search.value;
+
+                users.forEach(userContainer => {
+
+                    const user = userContainer.querySelector("#td-div .u .p-name").textContent;
+
+                    if (!user.startsWith(val)) {
+                        userContainer.style.display = "none";
+                    } else {
+                        userContainer.style.display = "grid";
+                    }
+
+                });
+
+            });
+
+        })();
+    }
+    onConnected();
+
+    function checkLogout() {
+        return confirm('Are you sure you want to log out?');
+    }
+
+</script>
+
+</body>
+</html>

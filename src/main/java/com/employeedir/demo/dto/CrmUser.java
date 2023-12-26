@@ -41,6 +41,8 @@ public class CrmUser {
 	private String email;
 	
 	private String formRole;
+
+	private String image;
 	
 	public CrmUser() {
 		
@@ -54,6 +56,14 @@ public class CrmUser {
 		this.password = password;
 		this.matchingPassword = matchingPassword;
 		this.formRole = formRole;
+	}
+
+	public String getImage() {
+		return image;
+	}
+
+	public void setImage(String image) {
+		this.image = image;
 	}
 
 	public String getFirstName() {

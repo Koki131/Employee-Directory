@@ -14,11 +14,6 @@ import javax.persistence.Table;
 @Table(name = "yearly_sales")
 public class YearlySales implements Comparable<YearlySales>{
 
-	
-//	@Id
-//	@Column(name = "sale_id")
-//	private int saleId;
-	
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

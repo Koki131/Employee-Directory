@@ -14,4 +14,6 @@ public interface UserService extends UserDetailsService {
 	void save(CrmUser user);
 	
 	User findUserByEmail(String email);
+
+	void updateUser(User user);
 }

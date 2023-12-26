@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
@@ -27,8 +27,12 @@
     	@media (max-width: 991.98px) {
       		.cascading-right {
        		 margin-right: 0;
-      	}
-    }
+      		}
+    	}
+		#image-preview {
+			margin-top: 1.5em;
+		}
+
 	</style>
 
 </head>
@@ -54,7 +58,7 @@
               <!-- Form -->
               <form th:action="@{/register/processRegistrationForm}" 
 						  	   th:object="${crmUser}" method="POST"
-						  	   class="form-horizontal">
+						  	   class="form-horizontal" enctype="multipart/form-data">
               
                   <!-- Validation -->
                    <div class="col-xs-15">
@@ -165,6 +169,12 @@
                 <select th:field="*{formRole}" class="form-control">
                     <option th:each="role : ${roles}" th:value="${role.key}" th:text="${role.value}">
                 </select>
+
+				<!-- Image selection -->
+				<div id="image-preview">
+					Choose a profile picture: <br> <input class="mb-4" type="file" name="fileImage" id="attachment" accept="image/png, image/jpeg"/>
+					<img id="thumbnail" style="width: 50px; height: 50px;">
+				</div>
                 
                 <br><br>
 
@@ -215,7 +225,37 @@
 		:
 		(pass1.style.backgroundColor = 'rgba(255,69,0,0.3)',
 		 pass2.style.backgroundColor = 'rgba(255,69,0,0.3)' )
-	})
+	});
+
+	document.querySelector("#attachment").addEventListener("change", function() {
+		showImageThumbnail(this)
+	});
+
+	function showImageThumbnail(fileInput) {
+		const file = fileInput.files[0];
+		const reader = new FileReader();
+
+		reader.onload = function(e) {
+			$('#thumbnail').attr('src', e.target.result);
+		};
+		reader.readAsDataURL(file);
+
+	}
+
+	// VALIDATION
+	function checkSize() {
+		const fileInput = document.getElementById('attachment');
+		const maxFileSize = 131072;
+		const file = fileInput.files[0];
+
+
+		if (file.size > maxFileSize) {
+			alert('File is too large. Maximum file size is 128kb');
+			return false;
+		}
+
+		return true;
+	}
 	
 </script>
 

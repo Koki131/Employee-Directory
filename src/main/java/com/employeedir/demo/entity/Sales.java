@@ -13,6 +13,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.format.annotation.DateTimeFormat;
 
 @Entity
@@ -93,7 +94,7 @@ public class Sales {
 
 	@Override
 	public String toString() {
-		return "Sales [id=" + id + ", date=" + date + ", employee=" + employee + ", amount=" + amount + "]";
+		return "Sales [id=" + id + ", date=" + date + ", employee=" + employee.getEmail() + ", amount=" + amount + "]";
 	}
 	
 	

@@ -4,12 +4,19 @@ package com.employeedir.demo.controller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.security.Principal;
+import java.util.Objects;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 
+import com.employeedir.demo.chat.model.ChatUser;
+import com.employeedir.demo.model.User;
+import com.employeedir.demo.securityservice.UserService;
+import com.employeedir.demo.util.FetchAuthenticatedUser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamSource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -34,30 +41,41 @@ import com.employeedir.demo.service.ProspectService;
 @Controller
 @RequestMapping("/contact")
 public class ContactController {
-	
+
+	@Value("${sender.mail}")
+	private String senderMail;
+
 	@Autowired
 	private JavaMailSender mailSender;
 	
 	@Autowired
 	private ProspectService prospectService;
-	
-	
+
+	@Autowired
+	private FetchAuthenticatedUser userUtil;
+
 	@Autowired
 	private EmployeeService employeeService;
-	
+
+
+
+
 	@GetMapping("/showContactForm")
-	public String viewContactForm(@RequestParam("employeeId") int employeeId, Model model) {
+	public String viewContactForm(@RequestParam("employeeId") int employeeId, Model model, Principal principal) {
 		
 		Employee employee = employeeService.getEmployee(employeeId);
 		model.addAttribute("employee", employee);
+		model.addAttribute("user", principal.getName());
+
+
+		model.addAttribute("currentUser", userUtil.getUser());
 
 		
 		return "/employees/contact-form";
 	}
 	
 	@PostMapping("/sendEmail")
-	public String sendEmail(RedirectAttributes model, HttpServletRequest request,
-			@ModelAttribute("employee") Employee employee, @RequestParam("attachment") MultipartFile file,
+	public String sendEmail(RedirectAttributes model, HttpServletRequest request, @RequestParam("attachment") MultipartFile file,
 			@RequestParam("employeeId") int employeeId) throws MessagingException, UnsupportedEncodingException {
 		
 		String fullName = request.getParameter("fullName");
@@ -80,7 +98,7 @@ public class ContactController {
 		mailContent += "<hr><img style='margin-bottom: 20px; width: 20%; height: 20%;'src='cid:logo-generic' />";
 		
 		// Enter same e-mail as application.properties
-		helper.setFrom("your-outlook-email@hotmail.com", "Big Business");
+		helper.setFrom(senderMail, "Big Business");
 		helper.setTo(email);
 		helper.setSubject(mailSubject);
 		helper.setText(mailContent, true);
@@ -89,7 +107,7 @@ public class ContactController {
 		helper.addInline("logo-generic", classPath);
 		
 		if (!file.isEmpty()) {
-			String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+			String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
 			
 			InputStreamSource source = new InputStreamSource() {
 				
@@ -101,8 +119,7 @@ public class ContactController {
 			
 			helper.addAttachment(fileName, source);
 		}
-		
-		
+
 		
 		mailSender.send(message);
 		
@@ -112,10 +129,14 @@ public class ContactController {
 	}
 	
 	@GetMapping("/showProspectContactForm")
-	public String showProspectContactForm(@RequestParam("prospectId") int prospectId, Model model) {
+	public String showProspectContactForm(@RequestParam("prospectId") int prospectId, Model model, Principal principal) {
 		
 		Prospects prospect = prospectService.getProspect(prospectId);
 		model.addAttribute("prospect", prospect);
+		model.addAttribute("user", principal.getName());
+
+
+		model.addAttribute("currentUser", userUtil.getUser());
 		
 		
 		return "/prospects/prospect-contact-form";
@@ -123,7 +144,7 @@ public class ContactController {
 	}
 	
 	@PostMapping("/sendProspectEmail")
-	public String sendProspectEmail(RedirectAttributes model, HttpServletRequest request, @ModelAttribute("prospect") Prospects prospect, 
+	public String sendProspectEmail(RedirectAttributes model, HttpServletRequest request,
 			@RequestParam("attachment") MultipartFile file, @RequestParam("prospectId") int prospectId) throws MessagingException, UnsupportedEncodingException {
 	
 		String fullName = request.getParameter("fullName");
@@ -147,7 +168,7 @@ public class ContactController {
 		
 		
 		// Enter same e-mail as application.properties
-		helper.setFrom("your-outlook-email@hotmail.com", "Big Business");
+		helper.setFrom(senderMail, "Big Business");
 		helper.setTo(email);
 		helper.setSubject(mailSubject);
 		helper.setText(mailContent, true);
@@ -156,7 +177,8 @@ public class ContactController {
 		helper.addInline("logo-generic", classPath);
 		
 		if (!file.isEmpty()) {
-			String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+
+			String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
 			
 			InputStreamSource source = new InputStreamSource() {
 				

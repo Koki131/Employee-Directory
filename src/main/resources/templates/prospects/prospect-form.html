@@ -8,7 +8,9 @@
 <link rel="stylesheet" th:href="@{/css/style.css}"/>
 
 <link rel="icon" href="data:,">
-
+	<!--	Sock and stomp -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <style type="text/css">
 
 .error {color:red}
@@ -21,21 +23,27 @@
 		    	<a class="navbar-brand mb-2" th:href="@{/}">Employee Directory</a>
 				    <div class="collapse navbar-collapse">
 				     	 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+							 <li>
+								 <div th:replace="fragments/_imageUploadFragment.html :: image-upload-fragment(user=${currentUser})"></div>
+							 </li>
 				        	<li class="nav-item">
 				          		<a class="nav-link active me-4" aria-current="page" th:href="@{/}">Home</a>
 				        	</li>
 				        	<li class="nav-item" sec:authorize="hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')">
 				        		<a class="nav-link active me-4" aria-current="page" th:href="@{/sales/showPerformance}">Performance</a>
 				        	</li>
+							 <li class="nav-item" sec:authorize="hasRole('ROLE_EMPLOYEE')">
+								 <a class="nav-link active me-4" aria-current="page" th:href="@{/chat/joinChat}">Chat</a>
+							 </li>
 				      	</ul>
 				      	<form th:action="@{/logout}" method="POST">
-				      		<input type="submit" value="Logout" class="btn btn-danger btn-sm" onclick="return checkLogout()"/>
+				      		<input type="submit" value="Logout" class="btn btn-danger btn-sm" onclick="if (!(confirm('Are you sure you want to logout?'))) return false;"/>
 				      	</form>
 		    		</div>
   			</div>
 	</nav>		
 	
-	<div class="container mt-4">
+	<div id="employee-container" class="container mt-4">
 		<h3 class="mb-4" th:if="${param.prospectId != null}">Update Prospect</h3>
 		<h3 class="mb-4" th:if="${param.prospectId == null}">Add Prospect</h3>
 		
@@ -52,30 +60,50 @@
 			<input th:if="${param.prospectId != null}" type="submit" value="Update" class="btn btn-primary">
 			<input th:if="${param.prospectId == null}" type="submit" value="Save" class="btn btn-primary">
 		</form>
+
+		<div class="toast-container position-absolute p-3 bottom-0 end-0" id="toastPlacement">
+			<div class="toast">
+				<div class="toast-header">
+					<!--<img src="" class="rounded me-2" alt="...">-->
+					<strong class="me-auto"></strong>
+					<small id="time-sent"></small>
+					<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+				</div>
+				<a href="#" th:href="@{/chat/joinChat}"  style="text-decoration: none;">
+					<div class="toast-body">
+
+					</div>
+				</a>
+			</div>
+		</div>
 	</div>
-	
-	<script th:inline="javascript">
-		
-		function checkLogout() {
-			return confirm('Are you sure you want to log out?');
+
+</body>
+<script th:src="@{/js/websocket.js}" defer="defer"></script>
+<script th:src="@{/js/notification.js}" defer="defer"></script>
+<script th:src="@{/js/imageUploadUtil.js}" defer="defer"></script>
+
+<script th:inline="javascript" type="module">
+
+	const user = [[${user}]];
+
+	onNotify(user);
+
+	function containsEmail() {
+
+		let emails = [[${emails}]];
+
+		let email = document.getElementById('email').value;
+
+
+		if (emails.includes(email)) {
+			alert('A Prospect with that email already exists');
+			return false;
 		}
 
-		function containsEmail() {
-			
-			var emails = [[${emails}]];
-			
-			var email = document.getElementById('email').value;
-			
-			
-			if (emails.includes(email)) {
-				alert('A Prospect with that email already exists');
-				return false;
-			}
-			
-			return true;
-			
-		}
-	
-	</script>
-</body>
+		return true;
+
+	}
+
+</script>
 </html>

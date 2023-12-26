@@ -1,7 +1,17 @@
 CREATE DATABASE  IF NOT EXISTS `employee_directory`;
 USE `employee_directory`;
 
+DROP TABLE IF EXISTS `prospect_links`;
+DROP TABLE IF EXISTS `sales`;
+DROP TABLE IF EXISTS `prospects`;
 DROP TABLE IF EXISTS `employee`;
+DROP TABLE IF EXISTS `users_roles`;
+DROP TABLE IF EXISTS `user`;
+DROP TABLE IF EXISTS `role`;
+DROP VIEW IF EXISTS `monthly_sales`;
+DROP VIEW IF EXISTS `yearly_sales`;
+DROP VIEW IF EXISTS `total_yearly_sales`;
+
 
 CREATE TABLE `employee` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -9,28 +19,11 @@ CREATE TABLE `employee` (
   `last_name` VARCHAR(45) NULL DEFAULT NULL,
   `email` VARCHAR(45) NULL DEFAULT NULL,
   `image` VARCHAR(45) NULL DEFAULT NULL,
+  `image_data` BLOB NULL DEFAULT NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB
 AUTO_INCREMENT = 115
-DEFAULT CHARACTER SET = latin1;
-
-DROP TABLE IF EXISTS `sales`;
-
-CREATE TABLE `sales` (
-  `sale_id` INT NOT NULL AUTO_INCREMENT,
-  `employee_id` INT NULL DEFAULT NULL,
-  `date` DATE NOT NULL,
-  `amount` DECIMAL(10,2) NOT NULL,
-  `full_name` VARCHAR(45) NULL DEFAULT NULL,
-  PRIMARY KEY (`sale_id`),
-  INDEX `sales_ibfk_1` (`employee_id` ASC),
-  CONSTRAINT `sales_ibfk_1`
-    FOREIGN KEY (`employee_id`)
-    REFERENCES `employee_directory`.`employee` (`id`))
-ENGINE = InnoDB
-AUTO_INCREMENT = 89;
-
-DROP TABLE IF EXISTS `prospects`;
+DEFAULT CHARACTER SET = utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE `prospects` (
   `prospect_id` INT NOT NULL AUTO_INCREMENT,
@@ -43,9 +36,8 @@ CREATE TABLE `prospects` (
     FOREIGN KEY (`employee_id`)
     REFERENCES `employee_directory`.`employee` (`id`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 48;
-
-DROP TABLE IF EXISTS `prospect_links`;
+AUTO_INCREMENT = 48
+DEFAULT CHARACTER SET = utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE `prospect_links` (
   `link_id` INT NOT NULL AUTO_INCREMENT,
@@ -58,6 +50,23 @@ CREATE TABLE `prospect_links` (
   CONSTRAINT `links_ibfk_1`
     FOREIGN KEY (`prospect_id`)
     REFERENCES `employee_directory`.`prospects` (`prospect_id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 89
+DEFAULT CHARACTER SET = utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+
+
+CREATE TABLE `sales` (
+  `sale_id` INT NOT NULL AUTO_INCREMENT,
+  `employee_id` INT NULL DEFAULT NULL,
+  `date` DATE NOT NULL,
+  `amount` DECIMAL(10,2) NOT NULL,
+  `full_name` VARCHAR(45) NULL DEFAULT NULL,
+  PRIMARY KEY (`sale_id`),
+  INDEX `sales_ibfk_1` (`employee_id` ASC),
+  CONSTRAINT `sales_ibfk_1`
+    FOREIGN KEY (`employee_id`)
+    REFERENCES `employee_directory`.`employee` (`id`))
 ENGINE = InnoDB
 AUTO_INCREMENT = 89;
 
@@ -86,7 +95,6 @@ CREATE VIEW total_yearly_sales AS
     GROUP BY e.employee_id, y.year;
 
 
-DROP TABLE IF EXISTS `user`;
 
 CREATE TABLE `user` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -95,16 +103,19 @@ CREATE TABLE `user` (
   `first_name` varchar(50) NOT NULL,
   `last_name` varchar(50) NOT NULL,
   `email` varchar(50) NOT NULL,
+  `image` VARCHAR(45) NULL DEFAULT NULL,
+  `image_data` BLOB NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1
+DEFAULT CHARACTER SET = utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 
 --
 -- Dumping data for table `user`
-
+--
 -- The passwords are encrypted using BCrypt
 --
---
--- Default passwords here are: test123
+-- Default passwords are: test123
 --
 
 INSERT INTO `user` (username,password,first_name,last_name,email)
@@ -117,17 +128,12 @@ VALUES
 
 -- Table structure for table `role`
 
-
-DROP TABLE IF EXISTS `role`;
-
 CREATE TABLE `role` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
-
--- Dumping data for table `roles`
 
 
 INSERT INTO `role` (name)
@@ -136,9 +142,6 @@ VALUES
 
 
 -- Table structure for table `users_roles`
-
-
-DROP TABLE IF EXISTS `users_roles`;
 
 CREATE TABLE `users_roles` (
   `user_id` int(11) NOT NULL,

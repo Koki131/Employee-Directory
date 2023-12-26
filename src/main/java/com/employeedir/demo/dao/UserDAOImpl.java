@@ -26,7 +26,7 @@ public class UserDAOImpl implements UserDAO {
 		query.setParameter("theName", userName);
 		
 		User user = null;
-		
+
 		try {
 			user = query.getSingleResult();
 		} catch (Exception e) {
@@ -51,8 +51,7 @@ public class UserDAOImpl implements UserDAO {
 		
 		Query<User> query = session.createQuery("from User where email=:theEmail", User.class);
 		query.setParameter("theEmail", email);
-		
-		
+
 		User user = null;
 		
 		try {

@@ -1,21 +1,15 @@
 package com.employeedir.demo.entity;
 
+import org.apache.tomcat.util.codec.binary.Base64;
+import org.hibernate.annotations.Type;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -47,6 +41,11 @@ public class Employee {
 	
 	@Column(name = "image")
 	private String image;
+
+	@Lob
+	@Type(type="org.hibernate.type.BinaryType")
+	@Column(name = "image_data", columnDefinition="bytea")
+	private byte[] imageData;
 	
 	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "employee")
 	private List<Prospects> prospects;
@@ -67,6 +66,10 @@ public class Employee {
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.email = email;
+	}
+
+	public String generateBase64Image() {
+		return Base64.encodeBase64String(this.imageData);
 	}
 
 	public int getId() {
@@ -108,18 +111,26 @@ public class Employee {
 	public void setImage(String image) {
 		this.image = image;
 	}
-	
+
+	public byte[] getImageData() {
+		return imageData;
+	}
+
+	public void setImageData(byte[] imageData) {
+		this.imageData = imageData;
+	}
+
 	public String getImagePath() {
 		
 		if (image == null) return null;
 		
-		return "/employee-images/" + id + "/" + image;	
+		return "/profile-images/" + id + "/" + image;
 			 
 	}
 	
 	public boolean isDir() {
 		
-		String dir = "./employee-images/" + this.getId();
+		String dir = "./profile-images/" + this.getId();
 		
 		Path uploadPath = Paths.get(dir);
 		

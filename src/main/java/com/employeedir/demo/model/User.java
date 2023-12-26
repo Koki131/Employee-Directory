@@ -1,21 +1,22 @@
 package com.employeedir.demo.model;
 
-import java.util.Collection;
+import com.employeedir.demo.chat.model.Pair;
+import com.employeedir.demo.chat.model.PrivateMessage;
+import org.apache.tomcat.util.codec.binary.Base64;
+import org.hibernate.annotations.Type;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import javax.persistence.*;
 
 @Entity
-@Table(name = "user")
+@Table(name="\"user\"")
 public class User {
 
 	@Id
@@ -37,6 +38,9 @@ public class User {
 	
 	@Column(name = "email")
 	private String email;
+
+	@Column(name = "image")
+	private String image;
 	
 	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinTable(
@@ -45,7 +49,11 @@ public class User {
 			inverseJoinColumns = @JoinColumn(name = "role_id")
 			)
 	private Collection<Role> roles;
-	
+
+	@Lob
+	@Type(type="org.hibernate.type.BinaryType")
+	@Column(name = "image_data", columnDefinition="bytea")
+	private byte[] imageData;
 	
 	public User() {
 		
@@ -73,6 +81,21 @@ public class User {
 		this.roles = roles;
 	}
 
+	public byte[] getImageData() {
+		return imageData;
+	}
+
+	public void setImageData(byte[] imageData) {
+		this.imageData = imageData;
+	}
+
+	public String getImage() {
+		return image;
+	}
+
+	public void setImage(String image) {
+		this.image = image;
+	}
 
 	public int getId() {
 		return id;
@@ -142,7 +165,55 @@ public class User {
 	public void setRoles(Collection<Role> roles) {
 		this.roles = roles;
 	}
-	
-	
-	
+
+	public String getImagePath() {
+
+		if (image == null) return null;
+
+		return "/profile-images/" + userName + "/" + image;
+
+	}
+
+	public boolean isDir() {
+
+		String dir = "./profile-images/" + this.getUserName();
+
+		Path uploadPath = Paths.get(dir);
+
+		return Files.isDirectory(uploadPath);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		User user = (User) o;
+
+		if (id != user.id) return false;
+		if (!Objects.equals(userName, user.userName)) return false;
+		return Objects.equals(email, user.email);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = id;
+		result = 31 * result + (userName != null ? userName.hashCode() : 0);
+		result = 31 * result + (email != null ? email.hashCode() : 0);
+		return result;
+	}
+
+	@Override
+	public String toString() {
+		return "User{" +
+				"id=" + id +
+				", userName='" + userName + '\'' +
+				", password='" + password + '\'' +
+				", firstName='" + firstName + '\'' +
+				", lastName='" + lastName + '\'' +
+				", email='" + email + '\'' +
+				", image='" + image + '\'' +
+				", roles=" + roles +
+				'}';
+	}
 }

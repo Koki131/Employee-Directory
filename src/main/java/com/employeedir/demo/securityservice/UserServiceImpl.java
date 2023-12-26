@@ -69,6 +69,7 @@ public class UserServiceImpl implements UserService {
 		ogUser.setUserName(user.getUserName());
 		ogUser.setPassword(passwordEncoder.encode(user.getPassword()));
 		ogUser.setEmail(user.getEmail());
+		ogUser.setImage(user.getImage());
 		
 		Collection<Role> roles = Arrays.asList(roleDAO.findRoleByName("ROLE_EMPLOYEE"), roleDAO.findRoleByName(user.getFormRole()));
 		
@@ -86,6 +87,12 @@ public class UserServiceImpl implements UserService {
 	@Transactional
 	public User findUserByEmail(String email) {
 		return userDAO.findUserByEmail(email);
+	}
+
+	@Override
+	@Transactional
+	public void updateUser(User user) {
+		userDAO.save(user);
 	}
 
 }

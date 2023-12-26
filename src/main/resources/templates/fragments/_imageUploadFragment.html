@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Image Upload</title>
+</head>
+<body>
+<div  id="update-profile-image" th:fragment="image-upload-fragment" th:with="user=${user}">
+  <div  id="profile-image-upload" style="display: none">
+    <div>
+      <form th:action="@{/updateProfileImage}" method="post" enctype="multipart/form-data">
+        <div>
+          <img id="thumbnail">
+          <input type="file" name="fileImage" id="attachment" accept="image/png, image/jpeg">
+          <button type="submit" id="update-button">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div>
+    <a href="#" th:if="${user.image != null}" ><img th:src="@{'data:image/jpeg;base64,'+${user.generateBase64Image()}}"class="image-style"></a>
+    <a href="#" th:if="${user.image == null}"><img th:src="@{/images/avatar.png}" class="image-style"></a>
+  </div>
+</div>
+</body>
+</html>

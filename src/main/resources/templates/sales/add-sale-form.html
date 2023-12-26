@@ -18,7 +18,9 @@
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
 <link rel="stylesheet" th:href="@{/css/style.css}">
-
+	<!--	Sock and stomp -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <style>
 
 .grid-container {
@@ -41,9 +43,6 @@
 	grid-column-end: 11;
 }
 
-
-
-
 </style>
 
 </head>
@@ -55,15 +54,21 @@
 		    	<a class="navbar-brand mb-2" th:href="@{/}">Employee Directory</a>
 				    <div class="collapse navbar-collapse">
 				     	 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+							 <li>
+								 <div th:replace="fragments/_imageUploadFragment.html :: image-upload-fragment(user=${currentUser})"></div>
+							 </li>
 				        	<li class="nav-item">
 				          		<a class="nav-link active me-4" aria-current="page" th:href="@{/}">Home</a>
 				        	</li>
 				        	<li class="nav-item" sec:authorize="hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')">
 				        		<a class="nav-link active me-4" aria-current="page" th:href="@{/sales/showPerformance}">Performance</a>
 				        	</li>
+							 <li class="nav-item" sec:authorize="hasRole('ROLE_EMPLOYEE')">
+								 <a class="nav-link active me-4" aria-current="page" th:href="@{/chat/joinChat}">Chat</a>
+							 </li>
 				      	</ul>
 				      	<form th:action="@{/logout}" method="POST">
-				      		<input type="submit" value="Logout" class="btn btn-danger btn-sm" onclick="return checkLogout()"/>
+				      		<input type="submit" value="Logout" class="btn btn-danger btn-sm" onclick="if (!(confirm('Are you sure you want to logout?'))) return false;"/>
 				      	</form>
 		    		</div>
   			</div>
@@ -99,8 +104,12 @@
 			<form th:action="@{/sales/removeSale}" onsubmit="return validateRemoveForm()">
 				<h4 class="mb-4">Remove Sale</h4>
 				<div>
-					<label for="removeDate" class="mb-2">Date:</label>
-					<input type="date" name="date" id="removeDate" class="form-control mb-4" required>
+					<select name="date-result" id="date-result">
+						<option th:each="s : ${sales.keySet()}" th:value="${s}" th:text="${s}"></option>
+					</select>
+					<select name="day-result" id="day-result">
+
+					</select>
 				</div>
 					<button type="submit" id="validateDate" class="btn btn-danger btn-sm">Delete</button>
 			</form>
@@ -131,12 +140,12 @@
 				</select>
 				</div>
 			</form>
-			<div th:if="${monthLength > 1}">
+			<div>
 			<form>
 				<label for="month-select" class="mb-2">Select month:</label>
 				<div>
 					<select id="month-select" class="form-select">
-						<option th:each="month : ${months}" th:value="${month}" th:text="${month}"/>
+
 					</select>
 				</div>
 			</form>
@@ -146,12 +155,156 @@
 		<div class="item3">
 			<div class="" id="sales-chart-container"  style="width:600px; height:400px;" ></div>
 		</div>
+
+		<div class="toast-container position-absolute p-3 bottom-0 end-0" id="toastPlacement">
+			<div class="toast">
+				<div class="toast-header">
+					<strong class="me-auto"></strong>
+					<small id="time-sent"></small>
+					<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+				</div>
+				<a href="#" th:href="@{/chat/joinChat}"  style="text-decoration: none;">
+					<div class="toast-body">
+
+					</div>
+				</a>
+			</div>
+		</div>
 	</div>
 
-  <script th:inline="javascript">
- 	
+	<script th:inline="javascript">
+
+
+		const allSales = [[${sales}]];
+
+		(function removeSales() {
+
+			const dateResult = document.querySelector("#date-result");
+			const dayResult = document.querySelector("#day-result");
+
+			populateDayUtil(dateResult, dayResult);
+
+			dateResult.addEventListener("change", function() {
+				dayResult.textContent = "";
+
+				populateDayUtil(dateResult, dayResult);
+
+			});
+
+
+		})();
+
+		(function populateMonths() {
+
+			const totalYearsAndMonths = [[${yearsAndMonths}]];
+
+			const monthSelect = document.querySelector("#month-select");
+			const yearSelect = document.querySelector("#year-select");
+
+			populateMonthUtil(totalYearsAndMonths, monthSelect, yearSelect);
+
+			yearSelect.addEventListener("change", function() {
+
+				monthSelect.textContent = "";
+
+				populateMonthUtil(totalYearsAndMonths, monthSelect, yearSelect);
+
+			});
+
+		})();
+
+		function populateDayUtil(dateResult, dayResult) {
+
+			for (let v of allSales[dateResult.value]) {
+
+				const opt = document.createElement("option");
+				opt.value = v.id;
+
+				opt.textContent = v.amount + ".00$";
+				dayResult.appendChild(opt);
+			}
+
+		}
+
+		function populateMonthUtil(total, monthSelect, yearSelect) {
+
+			for (let i of total[yearSelect.value]) {
+				const opt = document.createElement("option");
+				opt.value = i;
+				opt.textContent = i;
+				monthSelect.appendChild(opt);
+			}
+
+		}
+
+		const socket = new SockJS('/chat-websocket');
+		const stompClient = Stomp.over(socket);
+
+		stompClient.debug = () => {};
+
+		function connectStompClient() {
+			return new Promise((resolve, reject) => {
+				stompClient.connect({}, function() {
+					console.log('Connected to WebSocket');
+					resolve(stompClient);
+				}, function(error) {
+					console.error('Error connecting to WebSocket:', error);
+					reject(error);
+				});
+			});
+		}
+
+		const user = [[${user}]];
+
+
+		let timeoutId;
+		async function onNotify(user) {
+
+
+			const stompClient = await connectStompClient();
+
+
+			stompClient.subscribe(`/user/${user}/notify`, function(message) {
+
+				const response = JSON.parse(message.body);
+
+				displayNotification(response);
+
+			});
+
+		}
+
+		function displayNotification(response) {
+
+			const toast = document.querySelector(".toast");
+			const toastBody = document.querySelector(".toast-body");
+			const title = document.querySelector(".me-auto");
+			const time = document.querySelector("#time-sent");
+			const btn = toast.querySelector(".btn-close");
+
+			const date = new Date(response.timestamp);
+
+			toast.style.display = "block";
+			title.textContent = response.sender.userName;
+			toastBody.textContent = response.content;
+			time.textContent = date.getHours() + ":" + date.getMinutes();
+
+			btn.addEventListener("click", function() {
+				toast.style.display = "none";
+			});
+
+			if (timeoutId) clearTimeout(timeoutId);
+
+			timeoutId = setTimeout(function() {
+				toast.style.display = "none";
+			}, 5000);
+
+		}
+
+		onNotify(user);
+
   	/* Prevent white spaces in amount input */
- 	
+
 	  $("input#amount").on({
 		  keydown: function(e) {
 		    if (e.which === 32)
@@ -161,62 +314,61 @@
 		    this.value = this.value.replace(/\s/g, "");
 		  }
 		});
-  
-  	
+
+
   	 /* Amount validation */
-  	 
+
   	 function checkSize() {
-  		 
+
   		 var sale = document.getElementById('amount').value;
-  		 
+
   		 var digits = Math.log(sale) * Math.LOG10E + 1 | 0;
-  		 
-  		 
+
   		 if (digits > 8) {
   			 alert('Number too large');
   			 return false;
   		 }
 
   		 return true;
-  		 
+
   	 }
-  	
-  	
+
+
   	 /* Date validation */
-  	 	
-			 
+
+
   	 function validateRemoveForm() {
-  		 
+
   		 var date = document.getElementById('removeDate').value;
   		 var dates = [[${dates}]];
-  		 
-  		 
+
+
   		 if (!dates.includes(date)) {
   			 alert("Date doesn't exist")
   			 return false;
   		 }
-  		 
+
   		 return true;
   	 }
-  	 
-  
-  	 /* Takes in the default data from the select attribute */
-  
+
+
+  	 	/* Takes in the default data from the select attribute */
+
 	  	  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   	 	  const days = [];
-  	 	  
+
   	 	  for (let i = 1; i <= 31; i++) {
   	 		  days.push(i);
   	 	  }
-	  	 
+
 	      var yearlySales = [[${yearlySales}]];
-	 	
+
 	      var monthlySales = [[${monthlySales}]];
-	      
+
 	      var defaultData = yearlySales.filter(function(sale) {
 		        return sale.year == $('#year-select').val();
 		    });
-	      
+
 	      Highcharts.chart('sales-chart-container', {
 		        chart: {
 		            type: $('#chart-select').val()
@@ -243,31 +395,34 @@
 		            	} })
 		        }]
 		    });
-	      
-		
-	      
+
+
+
 	      /* Function to dynamically change the chart values filtered by year to display sales per month for the given year */
-	      
-	      $('#year-select').change(function() {
-	    	    updateChart();
-	    	});
-	      
+
+
+
+	      $('#year-select').click(function() {
+			  updateChart();
+		  });
+
 	      $('#chart-select').change(function() {
-	    	  	updateChart();
+			updateChart();
 	      });
-	      
-	      $('#month-select').change(function() {
-	    	  	updateChartMonthly();
-	      })
-	
+
+
+	      $('#month-select').click(function () {
+			updateChartMonthly();
+		  });
+
 	    	function updateChart() {
-	    	    
-	
+
+
 	    	    var year = $('#year-select').val();
 	    	    var filteredData = yearlySales.filter(function(sale) {
 	    	        return sale.year == year;
 	    	    });
-	
+
 	    	    chart = Highcharts.chart('sales-chart-container', {
 	    	        chart: {
 	    	            type: $('#chart-select').val()
@@ -285,10 +440,10 @@
 	    	                text: 'Total Sales (USD)'
 	    	            }
 	    	        },
-	
+
 	    	        series: [{
 	    	            name: [[${employee}]],
-	    	            data: filteredData.map(function(sale) { 
+	    	            data: filteredData.map(function(sale) {
 	    	            	return {
 	    	            		name: months[sale.month-1],
 	    	            		y: sale.totalSales
@@ -297,17 +452,17 @@
 	    	        }]
 	    	    });
 	    	}
-	      
+
 	       function updateChartMonthly() {
-	    	  
+
 	    	  var year = $('#year-select').val();
 	    	  var month = $('#month-select').val();
-	    	  
+
 	    	  var filteredData = monthlySales.filter(function(sale) {
 	    	      return sale.year == year && sale.month == month;
 	    	  });
-	    	  
-	    	  
+
+
 	    	  chart = Highcharts.chart('sales-chart-container', {
 	    	        chart: {
 	    	            type: $('#chart-select').val()
@@ -325,27 +480,23 @@
 	    	                text: 'Total Sales (USD)'
 	    	            }
 	    	        },
-	
+
 	    	        series: [{
 	    	            name: [[${employee}]],
-	    	            data: filteredData.map(function(sale) { 
+	    	            data: filteredData.map(function(sale) {
 	    	            	return {
 	    	            		name: days[sale.day-1],
 	    	            		y: sale.totalSales,
-	    	       
+
 	    	            	};
 	    	            })
 	    	        }]
-	    	    }); 
-	    	  
+	    	    });
+
 	      }
-	       
-	    function checkLogout() {
-			return confirm('Are you sure you want to log out?');
-		}
-	    	
+
    </script>
 
-
+	<script th:src="@{/js/imageUploadUtil.js}" defer="defer"></script>
 </body>
 </html>
