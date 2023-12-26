@@ -1,8 +1,8 @@
-FROM maven:3.8-openjdk-17 AS build
+FROM maven:3.8.2-openjdk-11 AS build
 COPY . .
 RUN mvn clean package -DskipTests
 
-FROM openjdk:17-ea-28-jdk-slim
-COPY --from=build /target/employee-directory-0.0.1-SNAPSHOT.jar employee-directory.jar
+FROM openjdk:11-ea-11-jdk-slim
+COPY --from=build /target/employee-dir-0.0.1-SNAPSHOT.jar employee-dir-0.0.1-SNAPSHOT.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "employee-directory.jar"]
+ENTRYPOINT ["java", "-jar", "/employee-dir-0.0.1-SNAPSHOT.jar"]
