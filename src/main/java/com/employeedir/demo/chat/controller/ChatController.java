@@ -56,7 +56,7 @@ public class ChatController {
         }
 
 
-        return "/chat/chat";
+        return "chat/chat";
     }
 
 

@@ -118,7 +118,7 @@ public class SalesController {
 	        
 	        empId = employeeId;
 	        
-	        return "/sales/add-sale-form";
+	        return "sales/add-sale-form";
         
 		} else {
 			
@@ -150,7 +150,7 @@ public class SalesController {
 
 			model.addAttribute("currentUser", userUtil.getUser());
 			
-			return "/sales/performance-page";
+			return "sales/performance-page";
 		} else {
 			
 			return "redirect:/accessDenied";

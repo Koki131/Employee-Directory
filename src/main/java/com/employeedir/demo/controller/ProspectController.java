@@ -74,7 +74,7 @@ public class ProspectController {
 		model.addAttribute("prospects", prospects);
 		model.addAttribute("user", principal.getName());
 		
-		return "/prospects/prospect-list";
+		return "prospects/prospect-list";
 	}
 	
 	@GetMapping("/search")
@@ -91,7 +91,7 @@ public class ProspectController {
 			return "redirect:/showProspectList?employeeId=" + empId;
 		}
 		
-		return "/prospects/prospect-list";
+		return "prospects/prospect-list";
 
 	}
 	
@@ -113,7 +113,7 @@ public class ProspectController {
 		model.addAttribute("user", principal.getName());
 		model.addAttribute("currentUser", userUtil.getUser());
 		
-		return "/prospects/prospect-form";
+		return "prospects/prospect-form";
 	}
 	
 	@PostMapping("/addProspect")
@@ -121,7 +121,7 @@ public class ProspectController {
 		
 		if (result.hasErrors()) {
 			model.addAttribute("currentUser", userUtil.getUser());
-			return "/prospects/prospect-form";
+			return "prospects/prospect-form";
 		}
 
 		
@@ -150,7 +150,7 @@ public class ProspectController {
 		model.addAttribute("user", principal.getName());
 		model.addAttribute("currentUser", userUtil.getUser());
 		
-		return "/prospects/prospect-form";
+		return "prospects/prospect-form";
 		
 	}
 	
@@ -174,14 +174,14 @@ public class ProspectController {
 			model.addAttribute("currentUser", userUtil.getUser());
 
 
-			return "/prospects/prospect-links";
+			return "prospects/prospect-links";
 			
 		}
 		model.addAttribute("prospectLinks", new ProspectLinks());
 		model.addAttribute("user", principal.getName());
 		model.addAttribute("currentUser", userUtil.getUser());
 		
-		return "/prospects/prospect-links";
+		return "prospects/prospect-links";
 		
 	}
 	

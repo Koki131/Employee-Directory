@@ -194,7 +194,7 @@
 
             const messageSender = chatMessage.sender;
 
-            messageSender.image === null ? img.src = "/images/avatar.png" : img.src = `/profile-images/${messageSender.userName}/${messageSender.image}`;
+            messageSender.image === null ? img.src = "/images/avatar.png" : img.src = `${messageSender.imageBase64}`;
 
             nameDiv.id = "name-div";
             textDiv.id = "text-div";
@@ -250,6 +250,7 @@
         function fetchUserData() {
 
             user = [[${currentUser}]]; // Set the user object
+
 
         }
 
@@ -311,7 +312,7 @@
                     msgText.classList.add("msg-u");
                     tr.classList.add("u-tr");
 
-                    u.image === null ? img.src = "/images/avatar.png" : img.src = `/profile-images/${u.userName}/${u.image}`;
+                    u.image === null ? img.src = "/images/avatar.png" : img.src = `${u.imageBase64}`;
 
 
                     // function to enable general chat

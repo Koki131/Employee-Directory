@@ -15,6 +15,8 @@ public class ChatUser {
 
     private byte[] imageData;
 
+    private String imageBase64;
+
 
     public ChatUser() {
 
@@ -33,6 +35,7 @@ public class ChatUser {
         this.userName = userName;
         this.image = image;
         this.imageData = imageData;
+        this.imageBase64 = "data:image/jpeg;base64," + generateBase64Image();
     }
 
     public String generateBase64Image() {
@@ -63,6 +66,14 @@ public class ChatUser {
         this.image = image;
     }
 
+    public String getImageBase64() {
+        return imageBase64;
+    }
+
+    public void setImageBase64(String imageBase64) {
+        this.imageBase64 = imageBase64;
+    }
+
     public String getImagePath() {
 
         if (image == null) return null;
@@ -70,6 +81,7 @@ public class ChatUser {
         return "/profile-images/" + userName + "/" + image;
 
     }
+
 
     public boolean isDir() {
 

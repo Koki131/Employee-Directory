@@ -94,7 +94,7 @@ public class EmployeeController {
 
 		model.addAttribute("currentUser", userUtil.getUser());
 
-		return "/employees/employee-list";
+		return "employees/employee-list";
 	}
 
 	@GetMapping("/")
@@ -134,7 +134,7 @@ public class EmployeeController {
 
 
 
-			return "/employees/employee-form";
+			return "employees/employee-form";
 
 		} else {
 
@@ -157,7 +157,7 @@ public class EmployeeController {
 
 			if (result.hasErrors()) {
 				model.addAttribute("currentUser", userUtil.getUser());
-				return "/employees/employee-form";
+				return "employees/employee-form";
 			}
 
 			byte[] image = multipartFile.getBytes();
@@ -198,7 +198,7 @@ public class EmployeeController {
 			model.addAttribute("currentUser", userUtil.getUser());
 
 
-			return "/employees/employee-form";
+			return "employees/employee-form";
 
 		} else {
 

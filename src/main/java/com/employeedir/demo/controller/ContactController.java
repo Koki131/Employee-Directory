@@ -71,7 +71,7 @@ public class ContactController {
 		model.addAttribute("currentUser", userUtil.getUser());
 
 		
-		return "/employees/contact-form";
+		return "employees/contact-form";
 	}
 	
 	@PostMapping("/sendEmail")
@@ -139,7 +139,7 @@ public class ContactController {
 		model.addAttribute("currentUser", userUtil.getUser());
 		
 		
-		return "/prospects/prospect-contact-form";
+		return "prospects/prospect-contact-form";
 		
 	}
 	

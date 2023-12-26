@@ -104,10 +104,10 @@
 			<form th:action="@{/sales/removeSale}" onsubmit="return validateRemoveForm()">
 				<h4 class="mb-4">Remove Sale</h4>
 				<div>
-					<select name="date-result" id="date-result">
+					<select name="date-result" id="date-result" class="form-control mb-3">
 						<option th:each="s : ${sales.keySet()}" th:value="${s}" th:text="${s}"></option>
 					</select>
-					<select name="day-result" id="day-result">
+					<select name="day-result" id="day-result" class="form-control mb-3">
 
 					</select>
 				</div>
